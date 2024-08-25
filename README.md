@@ -1,3 +1,7 @@
+# 🥷 Ninja Unity 
+
+⛩️Imagine a game where ninja skills meet strategy—it's a rhythmic dance of "Shadow, Sword, and Shuriken." Each move flows in harmony, a triangle of mastery. Shadows outmaneuver the sword with stealth and grace, swords deflect shuriken with a swift embrace, and shuriken pierce the shadow’s secretive space. It's a battle of wits, reflexes, and clever tactics—an advanced take on the classic rock-paper-scissors, where each round brings a new thrill as the ninjas clash in a test of skill.
+
 # 🏗 Scaffold-ETH 2
 
 <h4 align="center">
