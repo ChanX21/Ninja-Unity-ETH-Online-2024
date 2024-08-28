@@ -29,7 +29,6 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
       "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       1,
       100000000000000,
-      "0x9f8b5BbBFc186466897fB34EdddE792bE3bb721F",
     ],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by

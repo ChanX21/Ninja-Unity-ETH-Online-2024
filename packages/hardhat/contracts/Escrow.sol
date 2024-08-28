@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -84,14 +84,12 @@ contract Escrow is Ownable {
 	 * @param _escrowToken The address of the ERC20 token to be used in the escrow.
 	 * @param _fee The fee percentage (e.g., 1 for 1%).
 	 * @param _minEthRequired The minimum amount of ETH required for gas.
-	 * @param _owner The address of the initial owner of the contract.
 	 */
 	constructor(
 		IERC20 _escrowToken,
 		uint256 _fee,
-		uint256 _minEthRequired,
-		address _owner
-	) Ownable(_owner) {
+		uint256 _minEthRequired
+	) Ownable() {
 		require(_fee <= 100, "Fee must be less than or equal to 100%");
 		escrowToken = _escrowToken;
 		fee = _fee;
