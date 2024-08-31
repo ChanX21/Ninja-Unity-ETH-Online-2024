@@ -1,8 +1,8 @@
 import { State } from "@stackr/sdk/machine";
-import { solidityPackedKeccak256 } from "ethers";
+import { BytesLike, solidityPackedKeccak256 } from "ethers";
 
 
-interface RawState {
+export interface RawState {
   games: {
     gameId: string;
     player1: string;
@@ -17,8 +17,8 @@ interface RawState {
 }
 
 
-export class CounterState extends State<number> {
-  constructor(state: number) {
+export class CounterState extends State<RawState> {
+  constructor(state: RawState) {
     super(state);
   }
 
@@ -31,7 +31,11 @@ export class CounterState extends State<number> {
   //   };
   // }
 
-  getRootHash() {
-    return solidityPackedKeccak256(["uint256"], [this.state]);
-  }
+  
+  getRootHash(): BytesLike {
+    return solidityPackedKeccak256(
+      ["string"],
+      [JSON.stringify(this.state.games)]
+    );
+}
 }
