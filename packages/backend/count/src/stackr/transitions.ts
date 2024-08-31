@@ -5,6 +5,7 @@ import { CounterState } from "./state";
 type StartGameInput = { player1: string, player2: string };
 type JoinGameInput = { gameId: string };
 type MoveInput = { gameId: string, move: string };
+type EndGameInput = { gameId: string };
 
 const PRUNE_GAMES_INTERVAL = 300_000; // 5 minutes
 
@@ -83,6 +84,8 @@ const trackMove: STF<CounterState, MoveInput> = {
     game.lastMove = move;
     game.lastPlayer = String(msgSender);
 
+    let currentPlayer =  ( String(msgSender) === game.player1 ) ? "player 1" : "player 2";
+
     // Logic for ending the game (this could be based on specific conditions in your game)
     // if (/* check for game ending condition */ false) {
     //   game.endedAt = block.timestamp;
@@ -97,6 +100,35 @@ const trackMove: STF<CounterState, MoveInput> = {
     emit({
       name: "MoveTracked",
       value: move,
+    });
+    emit({
+      name: "moveOrigin",
+      value: [msgSender,currentPlayer],
+    });
+
+    return state;
+  },
+};
+
+// End the game
+const endGame: STF<CounterState, EndGameInput> = {
+  handler: ({ state, inputs, block, emit }) => {
+    const { gameId } = inputs;
+    const game = state.games.find(g => g.gameId === gameId);
+
+    if (!game) {
+      throw new Error("GAME_NOT_FOUND");
+    }
+
+    REQUIRE(game.endedAt === 0, "GAME_ALREADY_ENDED");
+
+    // End the game
+    game.endedAt = block.timestamp;
+    game.status = "ended";
+
+    emit({
+      name: "GameEnded",
+      value: gameId,
     });
 
     return state;
@@ -118,6 +150,7 @@ export const transitions: Transitions<CounterState> = {
   createGame,
   joinGame,
   trackMove,
+  endGame,
 };
 
 export const hooks: Hooks<CounterState> = {

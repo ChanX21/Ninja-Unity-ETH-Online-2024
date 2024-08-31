@@ -20,4 +20,10 @@ export const TrackMoveSchema = new ActionSchema("trackMove", {
   timestamp: SolidityType.UINT,   // Timestamp for when the move is made
 });
 
+// Schema for ending a game
+export const EndGameSchema = new ActionSchema("endGame", {
+  gameId: SolidityType.STRING,    // Unique ID of the game to end
+  timestamp: SolidityType.UINT,   // Timestamp for when the game is ended
+});
+
 // Hook schema can be added as well if required
