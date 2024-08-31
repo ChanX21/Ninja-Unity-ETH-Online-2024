@@ -1,6 +1,22 @@
 import { State } from "@stackr/sdk/machine";
 import { solidityPackedKeccak256 } from "ethers";
 
+
+interface RawState {
+  games: {
+    gameId: string;
+    player1: string;
+    player2: string;
+    createdAt: number;
+    startedAt: number;
+    endedAt: number;
+    status: "in_play" | "ended" | "p1" | "p2";
+    lastMove:string;
+    lastPlayer: string;
+  }[];
+}
+
+
 export class CounterState extends State<number> {
   constructor(state: number) {
     super(state);

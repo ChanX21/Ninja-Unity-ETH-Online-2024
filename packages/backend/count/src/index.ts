@@ -3,8 +3,28 @@ import { Wallet } from "ethers";
 import { mru } from "./stackr/mru.ts";
 import { UpdateCounterSchema } from "./stackr/schemas.ts";
 import { signMessage } from "./utils.ts";
+import { Playground } from "@stackr/sdk/plugins";
+import express from "express";
+
+const PORT = process.env.PORT || 3210;
+
 
 const main = async () => {
+
+  const app = express();
+  app.use(express.json({ limit: "50mb" }));
+  // allow CORS
+  app.use((_req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    next();
+  });
+
+  console.log("started server.....")
+
   const inputs = {
     timestamp: Date.now(),
   };
@@ -19,13 +39,16 @@ const main = async () => {
     msgSender: wallet.address,
   });
 
-  const ack = await mru.submitAction("increment", incrementAction);
-  console.log(ack);
-  console.log("check 123");
+  Playground.init(mru);
 
-  // leverage the ack to wait for C1 and access logs & error from STF execution
-  const { logs, errors } = await ack.waitFor(ActionConfirmationStatus.C1);
-  console.log({ logs, errors });
+  
+
+  // const ack = await mru.submitAction("increment", incrementAction);
+  // console.log(ack);
+
+  // // leverage the ack to wait for C1 and access logs & error from STF execution
+  // const { logs, errors } = await ack.waitFor(ActionConfirmationStatus.C1);
+  // console.log({ logs, errors });
 };
 
 main();
