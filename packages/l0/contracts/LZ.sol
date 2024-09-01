@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.22;
+
+import {OApp, Origin, MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {NFT} from "./NFT.sol";
+
+contract LZ is OApp {
+    address nft;
+    NFT nftContract;
+
+    constructor(address _endpoint, address _owner)
+        OApp(_endpoint, _owner)
+        Ownable(_owner)
+    {}
+
+    using OptionsBuilder for bytes;
+    modifier onlyNFT() {
+        require(msg.sender == nft);
+        _;
+    }
+
+    function setNFT(address _nft) public onlyOwner {
+        nft = _nft;
+        nftContract = NFT(_nft);
+    }
+
+    /**
+     * @notice Sends a message from the source to destination chain.
+     * @param _dstEid Destination chain's endpoint ID.
+     * @param _payload The message to send.
+     */
+    function send(uint32 _dstEid, bytes memory _payload)
+        external
+        payable
+        onlyNFT
+    {
+        // Encodes the message before invoking _lzSend.
+        // Replace with whatever data you want to send!
+        _lzSend(
+            _dstEid,
+            _payload,
+            createLzReceiveOption(500000,50000),
+            // Fee in native gas and ZRO token.
+            MessagingFee(msg.value, 0),
+            // Refund address in case of failed source message.
+            payable(msg.sender)
+        );
+    }
+
+    /// @notice Creates options for executing `lzReceive` on the destination chain.
+    /// @param _gas The gas amount for the `lzReceive` execution.
+    /// @return bytes-encoded option set for `lzReceive` executor.
+    function createLzReceiveOption(uint128 _gas, uint128 _value)
+        public
+        pure
+        returns (bytes memory)
+    {
+        return OptionsBuilder.newOptions().addExecutorLzReceiveOption(_gas, _value);
+    }
+
+    function _lzReceive(
+        Origin calldata,
+        bytes32,
+        bytes calldata payload,
+        address, // Executor address as specified by the OApp.
+        bytes calldata // Any extra data or options to trigger on receipt.
+    ) internal virtual override {
+        // Decode the payload to get the message
+        // In this case, type is string, but depends on your encoding!
+        (
+            address to,
+            uint256 tokenId,
+            string memory status,
+            string memory URI
+        ) = abi.decode(payload, (address, uint256, string, string));
+        if (to == address(0)) {
+            nftContract.updateNFT(tokenId, status, URI, 0);
+        } else {
+            nftContract.mint(to, 0, URI);
+        }
+    }
+
+    function quote(
+        uint32 _dstEid, // destination endpoint id
+        bytes memory payload, // message payload being sent
+        bytes memory _options, // your message execution options
+        bool _payInLzToken // boolean for which token to return fee in
+    ) public view returns (uint256 nativeFee) {
+        MessagingFee memory gas = _quote(
+            _dstEid,
+            payload,
+            _options,
+            _payInLzToken
+        );
+        return gas.nativeFee;
+    }
+}
