@@ -10,14 +10,14 @@ export interface RawState {
     createdAt: number;
     startedAt: number;
     endedAt: number;
-    status: "in_play" | "ended" | "p1" | "p2";
+    status: "in_lobby" | "in_play" | "ended" ;
     lastMove:string;
     lastPlayer: string;
   }[];
 }
 
 
-export class CounterState extends State<RawState> {
+export class NinjaStrikeState extends State<RawState> {
   constructor(state: RawState) {
     super(state);
   }

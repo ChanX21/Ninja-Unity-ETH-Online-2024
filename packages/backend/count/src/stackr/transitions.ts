@@ -1,6 +1,6 @@
 import { Hook, Hooks, REQUIRE, STF, Transitions } from "@stackr/sdk/machine";
 import { hashMessage, ZeroAddress } from "ethers";
-import { CounterState } from "./state";
+import { NinjaStrikeState } from "./state";
 
 type StartGameInput = { player1: string, player2: string };
 type JoinGameInput = { gameId: string };
@@ -10,22 +10,22 @@ type EndGameInput = { gameId: string };
 const PRUNE_GAMES_INTERVAL = 300_000; // 5 minutes
 
 // Create a new game
-const createGame: STF<CounterState, StartGameInput> = {
+const createGame: STF<NinjaStrikeState, StartGameInput> = {
   handler: ({ state, inputs, msgSender, block, emit }) => {
     const gameId = hashMessage(
       `${msgSender}::${block.timestamp}::${state.games.length}`
     );
 
-    const { player1, player2 } = inputs;
+    const { player1 } = inputs;
     
     state.games.push({
       gameId,
       player1: String(player1),
-      player2: String(player2),
+      player2: "",
       createdAt: block.timestamp,
       startedAt: 0,
       endedAt: 0,
-      status: "in_play",
+      status: "in_lobby",
       lastMove: "",
       lastPlayer: ""
     });
@@ -40,7 +40,7 @@ const createGame: STF<CounterState, StartGameInput> = {
 };
 
 // Join an existing game
-const joinGame: STF<CounterState, JoinGameInput> = {
+const joinGame: STF<NinjaStrikeState, JoinGameInput> = {
   handler: ({ state, inputs, msgSender, block }) => {
     const { gameId } = inputs;
     const game = state.games.find(g => g.gameId === gameId);
@@ -49,21 +49,23 @@ const joinGame: STF<CounterState, JoinGameInput> = {
       throw new Error("GAME_NOT_FOUND");
     }
 
-    // REQUIRE(game.startedAt === 0, "GAME_STARTED");
-    // REQUIRE(
-    //   game.player1 !== String(msgSender) && game.player2 !== String(msgSender),
-    //   "ALREADY_IN_GAME"
-    // );
+    REQUIRE(game.startedAt === 0, "GAME_AlREADY_STARTED");
+    REQUIRE(
+      game.player1 !== String(msgSender),
+      "ALREADY_IN_GAME"
+    );
 
     // Start the game once both players have joined
+    game.player2 = msgSender;
     game.startedAt = block.timestamp;
+    game.status = "in_play"
 
     return state;
   },
 };
 
 // Handle a move in the game
-const trackMove: STF<CounterState, MoveInput> = {
+const trackMove: STF<NinjaStrikeState, MoveInput> = {
   handler: ({ state, inputs, msgSender, block, emit }) => {
     const { gameId, move } = inputs;
     const game = state.games.find(g => g.gameId === gameId);
@@ -84,18 +86,7 @@ const trackMove: STF<CounterState, MoveInput> = {
     game.lastMove = move;
     game.lastPlayer = String(msgSender);
 
-    let currentPlayer =  ( String(msgSender) === game.player1 ) ? "player 1" : "player 2";
-
-    // Logic for ending the game (this could be based on specific conditions in your game)
-    // if (/* check for game ending condition */ false) {
-    //   game.endedAt = block.timestamp;
-    //   game.status = "ended"; // or assign winner
-
-    //   emit({
-    //     name: "GameEnded",
-    //     value: gameId,
-    //   });
-    // }
+    let currentPlayer =  ( String(msgSender) === game.player1 ) ? "player 1" : "player 2";   
 
     emit({
       name: "MoveTracked",
@@ -111,8 +102,8 @@ const trackMove: STF<CounterState, MoveInput> = {
 };
 
 // End the game
-const endGame: STF<CounterState, EndGameInput> = {
-  handler: ({ state, inputs, block, emit }) => {
+const endGame: STF<NinjaStrikeState, EndGameInput> = {
+  handler: ({ state, inputs, msgSender, block, emit }) => {
     const { gameId } = inputs;
     const game = state.games.find(g => g.gameId === gameId);
 
@@ -121,6 +112,7 @@ const endGame: STF<CounterState, EndGameInput> = {
     }
 
     REQUIRE(game.endedAt === 0, "GAME_ALREADY_ENDED");
+    REQUIRE("0xfcAe752B10e1952Ca2AcdB8AacafbfA4188b85ec" === String(msgSender), "CALLER_NOT_OWNER");
 
     // End the game
     game.endedAt = block.timestamp;
@@ -136,7 +128,7 @@ const endGame: STF<CounterState, EndGameInput> = {
 };
 
 // Hook to prune inactive games
-const pruneGames: Hook<CounterState> = {
+const pruneGames: Hook<NinjaStrikeState> = {
   handler: ({ state, block }) => {
     const { games } = state;
     state.games = games.filter(game => {
@@ -146,13 +138,13 @@ const pruneGames: Hook<CounterState> = {
   },
 };
 
-export const transitions: Transitions<CounterState> = {
+export const transitions: Transitions<NinjaStrikeState> = {
   createGame,
   joinGame,
   trackMove,
   endGame,
 };
 
-export const hooks: Hooks<CounterState> = {
+export const hooks: Hooks<NinjaStrikeState> = {
   pruneGames,
 };

@@ -1,10 +1,10 @@
-import { ActionConfirmationStatus } from "@stackr/sdk";
+import { ActionConfirmationStatus, ActionSchema } from "@stackr/sdk";
 import { Wallet } from "ethers";
 import { mru } from "./stackr/mru.ts";
 import { JoinGameSchema, TrackMoveSchema, CreateGameSchema, EndGameSchema } from "./stackr/schemas.ts";
 import { signMessage } from "./utils.ts";
 import { Playground } from "@stackr/sdk/plugins";
-import express from "express";
+import express, { Request, Response } from "express";
 
 const PORT = process.env.PORT || 3210;
 
@@ -29,102 +29,88 @@ const main = async () => {
   console.log("Wallet Address:", wallet.address);
   const wallet2 = Wallet.createRandom();
 
+
   // Playground initialization
   Playground.init(mru);
 
-  // Example 1: Create a Game
-  const createGameInputs = {
-    player1: wallet.address,
-    player2: wallet2.address, // Replace with actual player2 address
-    timestamp: Date.now(),
-  };
-  console.log("Create Game Inputs:", createGameInputs);
+  app.post("/:trackMove", async (req: Request, res: Response) => {
 
-  const createGameSignature = await signMessage(wallet, CreateGameSchema, createGameInputs);
-  console.log("Create Game Signature:", createGameSignature);
+    let { move, playerNo, gameId } = req.body;
 
-  const createGameAction = CreateGameSchema.actionFrom({
-    inputs: createGameInputs,
-    signature: createGameSignature,
-    msgSender: wallet.address,
+    const trackMoveInputs = {
+      gameId: gameId, // Replace with actual gameId
+      move: move, // Replace with actual move
+      timestamp: Date.now(),
+    };
+    console.log("Track Move Inputs:", trackMoveInputs);
+
+
+
+    let walletNow = playerNo == 1 ? wallet : wallet2
+
+    const trackMoveSignature = await signMessage(walletNow, TrackMoveSchema, trackMoveInputs);
+    console.log("Track Move Signature:", trackMoveSignature);
+
+    const trackMoveAction = TrackMoveSchema.actionFrom({
+      inputs: trackMoveInputs,
+      signature: trackMoveSignature,
+      msgSender: walletNow.address,
+    });
+
+    const trackMoveAck = await mru.submitAction("trackMove", trackMoveAction);
+    console.log("Track Move Acknowledgment:", trackMoveAck);
+
+    const { logs: trackMoveLogs, errors: trackMoveErrors } = await trackMoveAck.waitFor(ActionConfirmationStatus.C1);
+    console.log({ trackMoveLogs, trackMoveErrors });
+    res.status(200).json({ success: true });
+    return;
   });
 
-  const createGameAck = await mru.submitAction("createGame", createGameAction);
-  console.log("Create Game Acknowledgment:", createGameAck);
+  const stfSchemaMap: Record<string, ActionSchema> = {
+    startGame: CreateGameSchema,
+    endGame: EndGameSchema,
+    joinGame: JoinGameSchema,
+    trackMove: TrackMoveSchema
+  };
 
-  // Wait for confirmation (C1) and log any errors
-  const { logs: createGameLogs, errors: createGameErrors } = await createGameAck.waitFor(ActionConfirmationStatus.C1);
-  console.log({ createGameLogs, createGameErrors });
+  const handleAction = async (
+    transition: string,
+    schema: ActionSchema,
+    payload: any
+  ) => {
+    const action = schema.actionFrom(payload);
+    const ack = await mru.submitAction(transition, action);
+    const { logs, errors } = await ack.waitFor(ActionConfirmationStatus.C1);
+    if (errors?.length) {
+      throw new Error(errors[0].message);
+    }
+    return logs;
+  };
 
-  const gameId = (createGameLogs && createGameLogs.length > 0) ? createGameLogs[0].value.toString() : "undefined";
+  app.post("/:transition", async (req, res) => {
+    const { transition } = req.params;
+    const schema = stfSchemaMap[transition];
+
+    const { inputs, signature, msgSender } = req.body;
+
+    try {
+      const logs = await handleAction(transition, schema, {
+        inputs,
+        signature,
+        msgSender,
+      });
+      return res.json({
+        isOk: true,
+        logs,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ isOk: false, error: error });
+    }
+  });
 
 
-  // Example 2: Join a Game
-  // const joinGameInputs = {
-  //   gameId: gameId, // Replace with actual gameId from the created game
-  //   timestamp: Date.now(),
-  // };
-  // console.log("Join Game Inputs:", joinGameInputs);
 
-  // const joinGameSignature = await signMessage(wallet2, JoinGameSchema, joinGameInputs);
-  // console.log("Join Game Signature:", joinGameSignature);
-
-  // const joinGameAction = JoinGameSchema.actionFrom({
-  //   inputs: joinGameInputs,
-  //   signature: joinGameSignature,
-  //   msgSender: wallet2.address,
-  // });
-
-  // const joinGameAck = await mru.submitAction("joinGame", joinGameAction);
-  // console.log("Join Game Acknowledgment:", joinGameAck);
-
-  // const { logs: joinGameLogs, errors: joinGameErrors } = await joinGameAck.waitFor(ActionConfirmationStatus.C1);
-  // console.log({ joinGameLogs, joinGameErrors });
-
-  // Example 3: Track a Move
-  // const trackMoveInputs = {
-  //   gameId: gameId, // Replace with actual gameId
-  //   move: "9,9", // Replace with actual move
-  //   timestamp: Date.now(),
-  // };
-  // console.log("Track Move Inputs:", trackMoveInputs);
-
-  // const trackMoveSignature = await signMessage(wallet, TrackMoveSchema, trackMoveInputs);
-  // console.log("Track Move Signature:", trackMoveSignature);
-
-  // const trackMoveAction = TrackMoveSchema.actionFrom({
-  //   inputs: trackMoveInputs,
-  //   signature: trackMoveSignature,
-  //   msgSender: wallet.address,
-  // });
-
-  // const trackMoveAck = await mru.submitAction("trackMove", trackMoveAction);
-  // console.log("Track Move Acknowledgment:", trackMoveAck);
-
-  // const { logs: trackMoveLogs, errors: trackMoveErrors } = await trackMoveAck.waitFor(ActionConfirmationStatus.C1);
-  // console.log({ trackMoveLogs, trackMoveErrors });
-
-  // Example 4: End the Game
-  // const endGameInputs = {
-  //   gameId: gameId, // Replace with actual gameId
-  //   timestamp: Date.now(),
-  // };
-  // console.log("End Game Inputs:", endGameInputs);
-
-  // const endGameSignature = await signMessage(wallet, EndGameSchema, endGameInputs);
-  // console.log("End Game Signature:", endGameSignature);
-
-  // const endGameAction = EndGameSchema.actionFrom({
-  //   inputs: endGameInputs,
-  //   signature: endGameSignature,
-  //   msgSender: wallet.address,
-  // });
-
-  // const endGameAck = await mru.submitAction("endGame", endGameAction);
-  // console.log("End Game Acknowledgment:", endGameAck);
-
-  // const { logs: endGameLogs, errors: endGameErrors } = await endGameAck.waitFor(ActionConfirmationStatus.C1);
-  // console.log({ endGameLogs, endGameErrors });
 
   // Start the express server
   app.listen(PORT, () => {
