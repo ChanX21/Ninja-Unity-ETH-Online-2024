@@ -9,7 +9,11 @@ import {NFT} from "./NFT.sol";
 contract LZ is OApp {
     address nft;
     NFT nftContract;
-
+    struct IFees {
+        uint128 gasLimit;
+        uint128 gas;
+    }
+    IFees public fees = IFees(500000,50000);
     constructor(address _endpoint, address _owner)
         OApp(_endpoint, _owner)
         Ownable(_owner)
@@ -24,6 +28,13 @@ contract LZ is OApp {
     function setNFT(address _nft) public onlyOwner {
         nft = _nft;
         nftContract = NFT(_nft);
+    }
+
+       function setFees(uint128  _gasLimit, uint128 _gas) public onlyOwner {
+        IFees memory newFees;
+        newFees.gasLimit = _gasLimit;
+        newFees.gas = _gas;
+        fees = newFees;
     }
 
     /**
@@ -41,7 +52,7 @@ contract LZ is OApp {
         _lzSend(
             _dstEid,
             _payload,
-            createLzReceiveOption(500000,50000),
+            createLzReceiveOption(fees.gasLimit,fees.gas),
             // Fee in native gas and ZRO token.
             MessagingFee(msg.value, 0),
             // Refund address in case of failed source message.
