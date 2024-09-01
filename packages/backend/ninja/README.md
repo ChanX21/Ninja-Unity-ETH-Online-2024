@@ -1,4 +1,4 @@
-# count
+# Ninja Strike
 
 Project initialized using [@stackr/sdk](https://www.stackrlabs.xyz/)
 
