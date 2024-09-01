@@ -26,8 +26,6 @@ const main = async () => {
     next();
   });
 
-  console.log("Started server...");
-
   // Create a random wallet
   const wallet = Wallet.createRandom();
   console.log("Wallet Address Player 1:", wallet.address);
