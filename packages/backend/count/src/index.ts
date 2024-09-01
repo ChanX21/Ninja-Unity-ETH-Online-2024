@@ -6,6 +6,9 @@ import { signMessage } from "./utils.ts";
 import { Playground } from "@stackr/sdk/plugins";
 import express, { Request, Response } from "express";
 import { transitions } from "./stackr/transitions.ts";
+import * as schemas from "./stackr/schemas.ts";
+import { machine } from "./stackr/machine.ts";
+
 
 const PORT = process.env.PORT || 3210;
 
@@ -32,15 +35,16 @@ const main = async () => {
   console.log("Wallet Address Player 2:", wallet2.address);
 
 
-
   // Playground initialization
   Playground.init(mru);
 
-   // New Endpoint to Get Signature Based on Action
+  const machineI = mru.stateMachines.getFirst<typeof machine>();
+
+  // New Endpoint to Get Signature Based on Action
   app.post("/sign/:action", async (req: Request, res: Response) => {
     const { action } = req.params;
     const schema = stfSchemaMap[action];
-    
+
     if (!schema) {
       return res.status(400).json({ success: false, message: "Invalid action" });
     }
@@ -88,7 +92,7 @@ const main = async () => {
 
   app.post("/:reducer", async (req, res) => {
     const { reducer } = req.params;
-    console.log({reducer})  
+    console.log({ reducer })
 
     const { inputs, signature, msgSender } = req.body;
 
@@ -100,7 +104,7 @@ const main = async () => {
     }
 
     const schema = stfSchemaMap[reducer];
-    console.log({schema});
+    console.log({ schema });
 
 
     try {
@@ -117,6 +121,34 @@ const main = async () => {
       console.error(error);
       return res.status(500).json({ isOk: false, error: error });
     }
+  });
+
+  app.get("/info", (_req: Request, res: Response) => {
+    const transitionToSchema = mru.getStfSchemaMap();
+    const { name, version, chainId, verifyingContract, salt } =
+      mru.config.domain;
+    res.send({
+      signingInstructions: "signTypedData(domain, schema.types, inputs)",
+      // IMPORTANT: don't change the order of the properties in the domain object
+      domain: {
+        name,
+        version,
+        chainId,
+        verifyingContract,
+        salt,
+      },
+      transitionToSchema,
+      schemas: Object.values(schemas).reduce(
+        (acc, schema) => {
+          acc[schema.identifier] = {
+            primaryType: schema.EIP712TypedData.primaryType,
+            types: schema.EIP712TypedData.types,
+          };
+          return acc;
+        },
+        {} as Record<string, any>
+      ),
+    });
   });
 
 
