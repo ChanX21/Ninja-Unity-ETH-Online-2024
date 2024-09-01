@@ -81,7 +81,8 @@ contract NFT is ERC721, ERC721URIStorage, Ownable {
         bytes memory _payload = abi.encode(to, 0, "", URI);
 
         if (_dstEid > 0) {
-		 uint256 fee = lz.quote(_dstEid, _payload, lz.createLzReceiveOption(500000,50000),false);
+         (uint128 gasLimit, uint128 gas) = lz.fees();
+		 uint256 fee = lz.quote(_dstEid, _payload, lz.createLzReceiveOption(gasLimit,gas),false);
 		 require(msg.value>=fee,"lz: not enough gas");
 		 lz.send{value: fee}(_dstEid, _payload);
 		}
