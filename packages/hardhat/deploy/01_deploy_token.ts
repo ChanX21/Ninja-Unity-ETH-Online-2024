@@ -36,7 +36,6 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
   const yourContract = await hre.ethers.getContract<Contract>("Token", deployer);
   console.log("📄 Token Deployed:", await yourContract.name());
   console.log(`Verifying contract on Etherscan...`);
-  
 };
 
 export default deployYourContract;

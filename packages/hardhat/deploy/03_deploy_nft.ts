@@ -9,7 +9,7 @@ import { Contract } from "ethers";
  * @param hre HardhatRuntimeEnvironment object.
  */
 const deployTokenContract: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    /*
+  /*
         On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
     
         When deploying to live networks (e.g `yarn deploy --network goerli`), the deployer account
@@ -19,18 +19,18 @@ const deployTokenContract: DeployFunction = async function (hre: HardhatRuntimeE
         with a random private key in the .env file (then used on hardhat.config.ts)
         You can run the `yarn account` command to check your balance in every network.
       */
-    const { deployer } = await hre.getNamedAccounts();
-    const { deploy } = hre.deployments;
+  const { deployer } = await hre.getNamedAccounts();
+  const { deploy } = hre.deployments;
 
-    await deploy("NFT", {
-        from: deployer,
-        log: true,
-        autoMine: true,
-    });
-    const nft = await hre.ethers.getContract<Contract>("NFT", deployer);
-    const nft_address = await nft.getAddress();
-    const nft_name = await nft.name();
-    console.log(`✅ ${nft_name}`, nft_address);
+  await deploy("NFT", {
+    from: deployer,
+    log: true,
+    autoMine: true,
+  });
+  const nft = await hre.ethers.getContract<Contract>("NFT", deployer);
+  const nft_address = await nft.getAddress();
+  const nft_name = await nft.name();
+  console.log(`✅ ${nft_name}`, nft_address);
 };
 
 export default deployTokenContract;
