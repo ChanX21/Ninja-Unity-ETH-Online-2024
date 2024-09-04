@@ -4,7 +4,7 @@ import { NinjaStrikeState } from "./state";
 
 type StartGameInput = { player1: string, player2: string };
 type JoinGameInput = { gameId: string };
-type MoveInput = { gameId: string, move: string };
+type MoveInput = { gameId: string, move: string, hit: number };
 type EndGameInput = { gameId: string };
 
 const PRUNE_GAMES_INTERVAL = 300_000; // 5 minutes
@@ -27,7 +27,10 @@ const createGame: STF<NinjaStrikeState, StartGameInput> = {
       endedAt: 0,
       status: "in_lobby",
       lastMove: "",
-      lastPlayer: ""
+      lastPlayer: "",
+      hitCountP1: 0,
+      hitCountP2: 0,
+      winner: "",
     });
 
     emit({
@@ -67,7 +70,7 @@ const joinGame: STF<NinjaStrikeState, JoinGameInput> = {
 // Handle a move in the game
 const trackMove: STF<NinjaStrikeState, MoveInput> = {
   handler: ({ state, inputs, msgSender, block, emit }) => {
-    const { gameId, move } = inputs;
+    const { gameId, move, hit } = inputs;
     const game = state.games.find(g => g.gameId === gameId);
     
     if (!game) {
@@ -86,10 +89,38 @@ const trackMove: STF<NinjaStrikeState, MoveInput> = {
     game.lastMove = move;
     game.lastPlayer = String(msgSender);
 
+    if(hit != 0){
+      if(game.player1 === String(msgSender)){
+        game.hitCountP2 += 1;
+        if(game.hitCountP2 >= 1){
+          game.winner = String(msgSender);
+          game.endedAt = block.timestamp;
+          game.status = "ended";
+
+          emit({
+            name: "gameWon",
+            value: String(msgSender),
+          });
+        }
+      }
+      else {
+        game.hitCountP1 += 1;
+        if(game.hitCountP1 >= 1){
+          game.winner = String(msgSender);
+          game.endedAt = block.timestamp;
+          game.status = "ended";
+          emit({
+            name: "gameWon",
+            value: String(msgSender),
+          });
+        }
+      }
+    }
+
     let currentPlayer =  ( String(msgSender) === game.player1 ) ? "player 1" : "player 2";   
 
     emit({
-      name: "MoveTracked",
+      name: "moveTracked",
       value: move,
     });
     emit({

@@ -16,6 +16,7 @@ export const JoinGameSchema = new ActionSchema("joinGame", {
 export const TrackMoveSchema = new ActionSchema("trackMove", {
   gameId: SolidityType.STRING,    // Unique ID of the game
   move: SolidityType.STRING,      // Details of the move made
+  hit: SolidityType.UINT,         // Whether the move is a hit or not
   timestamp: SolidityType.UINT,   // Timestamp for when the move is made
 });
 

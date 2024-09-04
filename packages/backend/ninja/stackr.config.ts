@@ -28,7 +28,7 @@ const stackrConfig: StackrConfig = {
     salt: "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   },
   datastore: {
-    type: "mysql",
+    type: "sqlite",
     uri: process.env.DATABASE_URI as string,
   },
   registryContract: process.env.REGISTRY_CONTRACT as string,

@@ -39,33 +39,44 @@ const main = async () => {
   const machineI = mru.stateMachines.getFirst<typeof machine>();
 
   // New Endpoint to Get Signature Based on Action
-  app.post("/sign/:action", async (req: Request, res: Response) => {
+  app.post("/stackr/sign/:action", async (req: Request, res: Response) => {
     const { action } = req.params;
     const schema = stfSchemaMap[action];
-
+  
     if (!schema) {
       return res.status(400).json({ success: false, message: "Invalid action" });
     }
-
-    const { playerNo } = req.body;
-
+  
+    const { playerNo, gameId, move, hit } = req.body;
+  
     // Choose the wallet based on playerNo or any other logic
     const walletNow = playerNo === 1 ? wallet : wallet2;
-
+  
     try {
       let timestamp = Date.now();
-      const payload = {
-        player1: walletNow.address,  // Use the address from the chosen wallet
-        timestamp: timestamp,  // Add a timestamp
-        // Add any other necessary fields with default or computed values here
-      };
+  
+      // Construct the payload dynamically based on the schema for the given action
+      let payload: any = { timestamp };
+  
+      if (action === "createGame") {
+        payload.player1 = walletNow.address;
+      } else if (action === "joinGame" || action === "endGame") {
+        payload.gameId = gameId;
+      } else if (action === "trackMove") {
+        payload.gameId = gameId;
+        payload.move = move;
+        payload.hit = hit;
+      }
+  
+      // Add any other fields required by the schema, if needed
       const signature = await signMessage(walletNow, schema, payload);
-      return res.json({ success: true, signature, timestamp });
+      return res.json({ success: true, signature, timestamp, player : walletNow.address });
     } catch (error) {
       console.error("Error signing message:", error);
-      return res.status(500).json({ success: false, error: error });
+      return res.status(500).json({ success: false, error: error.message });
     }
   });
+  
 
   const stfSchemaMap: Record<string, ActionSchema> = {
     createGame: CreateGameSchema,
@@ -88,7 +99,7 @@ const main = async () => {
     return logs;
   };
 
-  app.post("/:reducer", async (req, res) => {
+  app.post("/stackr/:reducer", async (req, res) => {
     const { reducer } = req.params;
     console.log({ reducer })
 
