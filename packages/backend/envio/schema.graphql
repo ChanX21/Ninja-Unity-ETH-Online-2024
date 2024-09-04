@@ -1,0 +1,27 @@
+type Escrow_Deposited {
+  id: ID!
+  user: String!
+  amount: BigInt!
+  escrowType: BigInt!
+  escrowId: BigInt!
+}
+
+type Escrow_MinEthRequiredUpdated {
+  id: ID!
+  oldMinEthRequired: BigInt!
+  newMinEthRequired: BigInt!
+}
+
+type Escrow_OwnershipTransferred {
+  id: ID!
+  previousOwner: String!
+  newOwner: String!
+}
+
+type Escrow_Released {
+  id: ID!
+  winner: String!
+  amount: BigInt!
+  escrowId: BigInt!
+}
+
