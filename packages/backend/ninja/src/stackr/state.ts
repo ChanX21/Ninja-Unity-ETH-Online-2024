@@ -1,5 +1,6 @@
 import { State } from "@stackr/sdk/machine";
-import { BytesLike, solidityPackedKeccak256 } from "ethers";
+import { BytesLike, keccak256, solidityPackedKeccak256, ZeroHash } from "ethers";
+import MerkleTree from "merkletreejs";
 
 
 export interface RawState {
@@ -69,4 +70,5 @@ export class NinjaStrikeState extends State<RawState> {
     // The final hash is the Merkle root
     return hashes[0];
   }
+  
 }
