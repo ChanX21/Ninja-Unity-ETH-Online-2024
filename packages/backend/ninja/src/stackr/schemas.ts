@@ -23,6 +23,10 @@ export const TrackMoveSchema = new ActionSchema("trackMove", {
 // Schema for ending a game
 export const EndGameSchema = new ActionSchema("endGame", {
   gameId: SolidityType.STRING,    // Unique ID of the game to end
+  p1PlacementInputs: SolidityType.STRING, // format should be [(x1:y1),(x2,y2)....]
+  p1HitInputs: SolidityType.STRING,  // format should be [(x1:y1),(x2,y2)....]
+  p2PlacementInputs: SolidityType.STRING, // format should be [(x1:y1),(x2,y2)....]
+  p2HitInputs: SolidityType.STRING, // format should be [(x1:y1),(x2,y2)....]
   timestamp: SolidityType.UINT,   // Timestamp for when the game is ended
 });
 

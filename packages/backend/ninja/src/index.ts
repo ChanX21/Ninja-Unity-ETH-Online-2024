@@ -9,7 +9,6 @@ import { transitions } from "./stackr/transitions.ts";
 import * as schemas from "./stackr/schemas.ts";
 import { machine } from "./stackr/machine.ts";
 
-
 const PORT = process.env.PORT || 3210;
 
 const main = async () => {
@@ -31,7 +30,7 @@ const main = async () => {
   console.log("Wallet Address Player 1:", wallet.address);
   const wallet2 = Wallet.createRandom();
   console.log("Wallet Address Player 2:", wallet2.address);
-
+  // const stackrReferee = new Wallet(process.env.STACKR_REFEREE_PVTKEY? process.env.STACKR_REFEREE_PVTKEY : "")
 
   // Playground initialization
   Playground.init(mru);

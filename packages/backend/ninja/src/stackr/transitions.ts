@@ -1,11 +1,12 @@
 import { Hook, Hooks, REQUIRE, STF, Transitions } from "@stackr/sdk/machine";
 import { hashMessage, ZeroAddress } from "ethers";
 import { NinjaStrikeState } from "./state";
+import { checkWin, parseInput } from "../utils";
 
 type StartGameInput = { player1: string, player2: string };
 type JoinGameInput = { gameId: string };
 type MoveInput = { gameId: string, move: string, hit: number };
-type EndGameInput = { gameId: string };
+type EndGameInput = { gameId: string, p1PlacementInputs : string, p1HitInputs : string, p2PlacementInputs : string, p2HitInputs : string };
 
 const PRUNE_GAMES_INTERVAL = 300_000; // 5 minutes
 
@@ -132,10 +133,10 @@ const trackMove: STF<NinjaStrikeState, MoveInput> = {
   },
 };
 
-// End the game
+// End the game NOTE : Logic not properly implemented
 const endGame: STF<NinjaStrikeState, EndGameInput> = {
   handler: ({ state, inputs, msgSender, block, emit }) => {
-    const { gameId } = inputs;
+    const { gameId, p1PlacementInputs, p1HitInputs, p2PlacementInputs, p2HitInputs } = inputs;
     const game = state.games.find(g => g.gameId === gameId);
 
     if (!game) {
@@ -143,7 +144,29 @@ const endGame: STF<NinjaStrikeState, EndGameInput> = {
     }
 
     REQUIRE(game.endedAt === 0, "GAME_ALREADY_ENDED");
-    REQUIRE("0xfcAe752B10e1952Ca2AcdB8AacafbfA4188b85ec" === String(msgSender), "CALLER_NOT_OWNER");
+    // REQUIRE("0x9C97B8B58a5a4F10eEC7835b3D893550af4f4236" === String(msgSender), "CALLER_NOT_STACKR_REFEREE");
+
+    const p1PlacementInputsParsed = parseInput(p1PlacementInputs);
+    const p1HitInputsParsed = parseInput(p1HitInputs);
+    const p2PlacementInputsParsed = parseInput(p2PlacementInputs);
+    const p2HitInputsParsed = parseInput(p2HitInputs);
+    
+    const p1Wins = checkWin(p1HitInputsParsed, p1PlacementInputsParsed);
+    if(p1Wins){
+      emit({
+        name: "gameWon",
+        value: game.player1,
+      });
+    }
+
+    // Check if Player 2 has won
+    const p2Wins = checkWin(p2HitInputsParsed, p2PlacementInputsParsed);
+    if(p2Wins){
+      emit({
+        name: "gameWon",
+        value: game.player2,
+      });
+    }
 
     // End the game
     game.endedAt = block.timestamp;
