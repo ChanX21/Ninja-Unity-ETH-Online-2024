@@ -92,7 +92,7 @@ const trackMove: STF<NinjaStrikeState, MoveInput> = {
     if(hit != 0){
       if(game.player1 === String(msgSender)){
         game.hitCountP2 += 1;
-        if(game.hitCountP2 >= 1){
+        if(game.hitCountP2 >= 10){
           game.winner = String(msgSender);
           game.endedAt = block.timestamp;
           game.status = "ended";
@@ -105,7 +105,7 @@ const trackMove: STF<NinjaStrikeState, MoveInput> = {
       }
       else {
         game.hitCountP1 += 1;
-        if(game.hitCountP1 >= 1){
+        if(game.hitCountP1 >= 10){
           game.winner = String(msgSender);
           game.endedAt = block.timestamp;
           game.status = "ended";
