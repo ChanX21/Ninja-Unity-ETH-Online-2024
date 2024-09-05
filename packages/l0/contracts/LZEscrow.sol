@@ -6,7 +6,7 @@ import {OptionsBuilder} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/Option
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Escrow} from "./Escrow.sol";
 
-contract LZ is OApp {
+contract LZEscrow is OApp {
     address escrow;
     Escrow escrowContract;
     struct IFees {
