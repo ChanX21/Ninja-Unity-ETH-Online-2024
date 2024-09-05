@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=./node_modules/envio/evm.schema.json
-name: ninjai
+name: ninjasi
 networks:
 - id: 11155111
   start_block: 0
   contracts:
   - name: Escrow
     address:
-    - 0x6B0D6D6FdAe18cD3bDC6aE2EEa711350F54e0B48
+    - 0x6831561ab80dE6b3BeBAd5ae5d4Be3b8052D1d08
     handler: src/EventHandlers.ts
     events:
     - event: Deposited(address indexed user, uint256 amount, uint8 escrowType, uint256 escrowId)
@@ -14,3 +14,4 @@ networks:
     - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
     - event: Released(address indexed winner, uint256 amount, uint256 escrowId)
 rollback_on_reorg: false
+

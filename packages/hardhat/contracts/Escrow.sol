@@ -46,6 +46,34 @@ contract Escrow is Ownable {
 	function getAllEscrows() external view returns (uint256[] memory) {
 		return escrowIds;
 	}
+	/**
+     * @notice Retrieves the IDs of all active escrows.
+     * @dev An escrow is considered active if the funds have not been released.
+     * @return activeEscrowIds An array of active escrow IDs.
+     */
+    function getActiveEscrows() external view returns (uint256[] memory) {
+        uint256 activeCount = 0;
+
+        // First, count the number of active escrows to initialize the array
+        for (uint256 i = 0; i < escrowIds.length; i++) {
+            if (!escrows[escrowIds[i]].isReleased) {
+                activeCount++;
+            }
+        }
+
+        uint256[] memory activeEscrowIds = new uint256[](activeCount);
+        uint256 index = 0;
+
+        // Populate the array with active escrow IDs
+        for (uint256 i = 0; i < escrowIds.length; i++) {
+            if (!escrows[escrowIds[i]].isReleased) {
+                activeEscrowIds[index] = escrowIds[i];
+                index++;
+            }
+        }
+
+        return activeEscrowIds;
+    }
 
 	/**
 	 * @dev Emitted when a deposit is made.

@@ -244,6 +244,19 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "getActiveEscrows",
+          outputs: [
+            {
+              internalType: "uint256[]",
+              name: "",
+              type: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "getAllEscrows",
           outputs: [
             {
