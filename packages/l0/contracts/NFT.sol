@@ -28,6 +28,7 @@ contract NFT is ERC721, ERC721URIStorage, Ownable {
     uint256 counter;
     LZ lz;
     address lzAddress;
+    uint32 dstEid;
     struct NFTData {
         string status;
         bool locked;
@@ -54,14 +55,14 @@ contract NFT is ERC721, ERC721URIStorage, Ownable {
         onlyOwnerCanMint = _onlyOwnerCanMint;
     }
 
-    function setLZ(address _lz) public onlyOwner {
+    function setLZ(address _lz, uint32 _dstEid) public onlyOwner {
         lz = LZ(_lz);
         lzAddress = _lz;
+        dstEid = _dstEid;
     }
 
     function mint(
         address to,
-        uint32 _dstEid,
         string memory URI
     ) public payable {
         require(
@@ -80,19 +81,24 @@ contract NFT is ERC721, ERC721URIStorage, Ownable {
         nftData[tokenId] = NFTData({status: "active", locked: false});
         bytes memory _payload = abi.encode(to, 0, "", URI);
 
-        if (_dstEid > 0) {
+        if (msg.sender != lzAddress) {
          (uint128 gasLimit, uint128 gas) = lz.fees();
-		 uint256 fee = lz.quote(_dstEid, _payload, lz.createLzReceiveOption(gasLimit,gas),false);
+		 uint256 fee = lz.quote(dstEid, _payload, lz.createLzReceiveOption(gasLimit,gas),false);
 		 require(msg.value>=fee,"lz: not enough gas");
-		 lz.send{value: fee}(_dstEid, _payload);
+		 lz.send{value: fee}(dstEid, _payload);
 		}
         emit TokenMinted(tokenId, to);
     }
+function fees(uint32 _dstEid, address to, string memory URI) view public returns(uint256){
+        bytes memory _payload = abi.encode(to, 0, "", URI);
+        (uint128 gasLimit, uint128 gas) = lz.fees();
+		return lz.quote(_dstEid, _payload, lz.createLzReceiveOption(gasLimit, gas),false);
+		
+}
     function updateNFT(
         uint256 tokenId,
         string memory status,
-        string memory URI,
-        uint32 _dstEid
+        string memory URI
     ) public payable {
         require(counter >= tokenId && tokenId > 0, "NFT does not exist");
         require(
@@ -106,11 +112,11 @@ contract NFT is ERC721, ERC721URIStorage, Ownable {
         if (bytes(URI).length > 0) _setTokenURI(tokenId, URI);
         bytes memory _payload = abi.encode(address(0), tokenId, status, URI);
 
-     if (_dstEid > 0) {
+        if (msg.sender != lzAddress) {
         (uint128 gasLimit, uint128 gas) = lz.fees();
-		 uint256 fee = lz.quote(_dstEid, _payload, lz.createLzReceiveOption(gasLimit,gas),false);
+		 uint256 fee = lz.quote(dstEid, _payload, lz.createLzReceiveOption(gasLimit,gas),false);
 		 require(msg.value>=fee,"lz: not enough gas");
-		 lz.send{value: fee}(_dstEid, _payload);
+		 lz.send{value: fee}(dstEid, _payload);
 		}
     }
 

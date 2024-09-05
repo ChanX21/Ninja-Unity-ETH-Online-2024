@@ -87,9 +87,9 @@ contract LZ is OApp {
             string memory URI
         ) = abi.decode(payload, (address, uint256, string, string));
         if (to == address(0)) {
-            nftContract.updateNFT(tokenId, status, URI, 0);
+            nftContract.updateNFT(tokenId, status, URI);
         } else {
-            nftContract.mint(to, 0, URI);
+            nftContract.mint(to, URI);
         }
     }
 
