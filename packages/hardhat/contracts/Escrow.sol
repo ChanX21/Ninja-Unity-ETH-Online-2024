@@ -4,52 +4,27 @@ pragma solidity ^0.8.20;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./CCIP.sol";
 import "hardhat/console.sol";
-import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
-import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
-import {IAny2EVMMessageReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IAny2EVMMessageReceiver.sol";
-import {OwnerIsCreator} from "@chainlink/contracts-ccip/src/v0.8/shared/access/OwnerIsCreator.sol";
-import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title GameEscrow
  * @dev This contract allows two users to deposit tokens into escrow,
  * play a game off-chain, and have the winner receive the funds minus a fee.
  */
-contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
+contract Escrow is Ownable {
     using SafeERC20 for IERC20;
-
-    error InvalidRouter(address router);
-    error NotEnoughBalanceForFees(
-        uint256 currentBalance,
-        uint256 calculatedFees
-    );
-    error NothingToWithdraw();
-    error FailedToWithdrawEth(address owner, address target, uint256 value);
-    error ChainNotEnabled(uint64 chainSelector);
-    error SenderNotEnabled(address sender);
-    error OperationNotAllowedOnCurrentChain(uint64 chainSelector);
-
-    IERC20 public immutable escrowToken;
-    uint256 public fee;
-    uint256 private escrowCounter;
-    uint256 public minEthRequired;
-
-    IRouterClient internal immutable i_ccipRouter;
-    LinkTokenInterface internal immutable i_linkToken;
-    uint64 private immutable i_currentChainSelector;
     struct IDest {
         address contractAddress;
         uint64 chain;
         bytes ccipExtraArgsBytes;
     }
     IDest destination;
-
-    enum PayFeesIn {
-        Native,
-        LINK
-    }
+    CCIP ccip; 
+    IERC20 public immutable escrowToken;
+    uint256 public fee;
+    uint256 private escrowCounter;
+    uint256 public minEthRequired;
 
     struct EscrowStruct {
         uint256 id;
@@ -61,60 +36,19 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
         string gameData;
     }
 
-    mapping(uint64 => IDest) public s_chains;
-
-    event ChainEnabled(
-        uint64 chainSelector,
-        address xNftAddress,
-        bytes ccipExtraArgs
-    );
-    event ChainDisabled(uint64 chainSelector);
-    event CrossChainSent(
-        address from,
-        uint64 sourceChainSelector,
-        uint64 destinationChainSelector
-    );
-
     enum EscrowType {
         ETH,
         ERC20
     }
-
-    modifier onlyRouter() {
-        if (msg.sender != address(i_ccipRouter)) {
-            revert InvalidRouter(msg.sender);
-        }
-        _;
-    }
-    modifier onlyEnabledChain(uint64 _chainSelector) {
-        if (s_chains[_chainSelector].contractAddress == address(0)) {
-            revert ChainNotEnabled(_chainSelector);
-        }
-        _;
-    }
-    modifier onlyEnabledSender(uint64 _chainSelector, address _sender) {
-        if (s_chains[_chainSelector].contractAddress != _sender) {
-            revert SenderNotEnabled(_sender);
-        }
-        _;
-    }
-
-    modifier onlyOtherChains(uint64 _chainSelector) {
-        if (_chainSelector == i_currentChainSelector) {
-            revert OperationNotAllowedOnCurrentChain(_chainSelector);
-        }
-        _;
-    }
-
-    function setDestination(address contractAddress, uint64 chain)
+  function setDestination(address contractAddress, uint64 chain, address payable _ccip)
         public
         onlyOwner
     {
         destination.contractAddress = contractAddress;
         destination.chain = chain;
+        ccip = CCIP(_ccip);
     }
-
-    function isExist(uint256[] memory arr, uint256 element)
+      function isExist(uint256[] memory arr, uint256 element)
         internal
         pure
         returns (bool)
@@ -129,28 +63,10 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
         return exists;
     }
 
-    function crossChainTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        uint64 destinationChainSelector,
-        PayFeesIn payFeesIn
-    ) external nonReentrant returns (bytes32 messageId) {}
-
-    /// @inheritdoc IAny2EVMMessageReceiver
-    function ccipReceive(Client.Any2EVMMessage calldata message)
+    function ccipReceive(bytes calldata data)
         external
-        virtual
-        override
-        onlyRouter
-        nonReentrant
-        onlyEnabledChain(message.sourceChainSelector)
-        onlyEnabledSender(
-            message.sourceChainSelector,
-            abi.decode(message.sender, (address))
-        )
-    {
-        EscrowStruct memory escrow = abi.decode(message.data, (EscrowStruct));
+    {  
+       (EscrowStruct memory escrow) = abi.decode(data, (EscrowStruct));
         escrows[escrow.id] = escrow;
         if (!isExist(escrowIds, escrow.id)) {
             escrowIds.push(escrow.id);
@@ -165,7 +81,6 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
             userEscrows[escrow.depositor2].push(escrow.id);
         }
     }
-
     mapping(uint256 => EscrowStruct) public escrows;
     mapping(address => uint256[]) public userEscrows;
     uint256[] public escrowIds; // keeps track of escrows
@@ -214,15 +129,11 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
         uint256 newMinEthRequired
     );
 
-   constructor(address ccipRouterAddress, address linkTokenAddress, uint64 currentChainSelector, IERC20 _escrowToken, uint256 _fee, uint256 _minEthRequired) Ownable() {
+   constructor( IERC20 _escrowToken, uint256 _fee, uint256 _minEthRequired) Ownable() {
         require(_fee <= 100, "Fee must be less than or equal to 100%");
         escrowToken = _escrowToken;
         fee = _fee;
         minEthRequired = _minEthRequired;    
-        if (ccipRouterAddress == address(0)) revert InvalidRouter(address(0));
-        i_ccipRouter = IRouterClient(ccipRouterAddress);
-        i_linkToken = LinkTokenInterface(linkTokenAddress);
-        i_currentChainSelector = currentChainSelector;
     }
 
     /**
@@ -249,7 +160,7 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
         payable(owner()).transfer(feeAmount);
 
         uint256 escrowId = escrowCounter++;
-        escrows[escrowId] = EscrowStruct({
+        EscrowStruct memory escrow = EscrowStruct({
             id: escrowId,
             escrowType: EscrowType.ETH,
             depositor1: msg.sender,
@@ -259,33 +170,11 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
             gameData: ""
         });
 
+        escrows[escrowId] = escrow;
         userEscrows[msg.sender].push(escrowId);
         escrowIds.push(escrowId);
+        ccip.sendMessagePayNative(destination.chain,destination.contractAddress,abi.encode("ccipReceive(EscrowStruct)",escrow));
         emit Deposited(msg.sender, depositAmount, EscrowType.ETH, escrowId);
-    }
-
-    function CCIPSend(EscrowStruct memory escrow) internal {
-        Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
-            receiver: abi.encode(destination),
-            data: abi.encode(escrows[escrow.id]),
-            feeToken: address(0),
-            tokenAmounts: new Client.EVMTokenAmount[](0),
-            extraArgs: s_chains[destination.chain].ccipExtraArgsBytes
-        });
-
-        // Get the fee required to send the CCIP message
-        uint256 fees = i_ccipRouter.getFee(destination.chain, message);
-        if (fees > address(this).balance) {
-            revert NotEnoughBalanceForFees(address(this).balance, fees);
-        }
-
-        // Send the message through the router and store the returned message ID
-        i_ccipRouter.ccipSend{value: fees}(destination.chain, message);
-        emit CrossChainSent(
-            msg.sender,
-            i_currentChainSelector,
-            destination.chain
-        );
     }
 
     /**
@@ -323,7 +212,7 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
 
         userEscrows[msg.sender].push(escrowId);
         escrowIds.push(escrowId);
-        CCIPSend(escrow);
+        ccip.sendMessagePayNative(destination.chain,destination.contractAddress,abi.encode("ccipReceive(EscrowStruct)",escrow));
         emit Deposited(msg.sender, depositAmount, EscrowType.ERC20, escrowId);
     }
 
@@ -363,7 +252,6 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
                 depositAmount
             );
         }
-        CCIPSend(escrow);
         emit Deposited(msg.sender, depositAmount, escrow.escrowType, escrowId);
     }
 
@@ -408,8 +296,7 @@ contract Escrow is IAny2EVMMessageReceiver, Ownable, ReentrancyGuard {
             // Transfer the remaining amount to the winner in ERC20
             escrowToken.safeTransfer(winner, totalAmount);
         }
-        CCIPSend(escrow);
-
+        ccip.sendMessagePayNative(destination.chain,destination.contractAddress,abi.encode("ccipReceive(EscrowStruct)",escrow));
         emit Released(winner, totalAmount, escrowId);
     }
 
