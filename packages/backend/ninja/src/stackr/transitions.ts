@@ -16,12 +16,10 @@ const createGame: STF<NinjaStrikeState, StartGameInput> = {
     const gameId = hashMessage(
       `${msgSender}::${block.timestamp}::${state.games.length}`
     );
-
-    const { player1 } = inputs;
     
     state.games.push({
       gameId,
-      player1: String(player1),
+      player1: msgSender,
       player2: "",
       createdAt: block.timestamp,
       startedAt: 0,

@@ -2,7 +2,6 @@ import { ActionSchema, SolidityType } from "@stackr/sdk";
 
 // Schema for creating a new game
 export const CreateGameSchema = new ActionSchema("createGame", {
-  player1: SolidityType.STRING,   // Player 1's address
   timestamp: SolidityType.UINT,   // Timestamp for when the game is created
 });
 
