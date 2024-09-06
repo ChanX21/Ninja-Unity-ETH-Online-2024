@@ -1,6 +1,13 @@
-# 🥷 Ninja Unity 
+# 🥷 Ninja Strike: Stealth, Strategy, and Surprise in Every Move
 
-⛩️Imagine a game where ninja skills meet strategy—it's a rhythmic dance of "Shadow, Sword, and Shuriken." Each move flows in harmony, a triangle of mastery. Shadows outmaneuver the sword with stealth and grace, swords deflect shuriken with a swift embrace, and shuriken pierce the shadow’s secretive space. It's a battle of wits, reflexes, and clever tactics—an advanced take on the classic rock-paper-scissors, where each round brings a new thrill as the ninjas clash in a test of skill.
+⛩️ Prepare for the ultimate test of strategy and cunning in Ninja Strike, a thrilling game where stealth and tactics reign supreme. Set on a 10x10 grid, this game challenges you to hide your team of 10 ninjas while you search for and strike your opponent's hidden forces.
+
+<img src="https://github.com/user-attachments/assets/6226078f-f04a-4046-a0da-e1ef3ebd95f5" alt="image" width="300"/>
+
+### Gameplay
+
+🎮 Each player secretly arranges 10 ninjas on a 10x10 grid, aiming to uncover and eliminate all of the opponent's ninjas before losing their own. Players take turns guessing their opponent's ninja locations, employing tactics like clustering ninjas for a final stand or spreading them out to confuse the enemy. The tension builds as each guess brings you closer to victory or defeat! 🥷🎯
+
 
 # 🏗 Scaffold-ETH 2
 
