@@ -58,7 +58,7 @@ const main = async () => {
       let payload: any = { timestamp };
   
       if (action === "createGame") {
-        payload.player1 = walletNow.address;
+        // payload.player1 = walletNow.address;
       } else if (action === "joinGame" || action === "endGame") {
         payload.gameId = gameId;
       } else if (action === "trackMove") {
