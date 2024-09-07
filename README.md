@@ -1,12 +1,29 @@
-# 🥷 Ninja Strike: Stealth, Strategy, and Surprise in Every Move
+# 🥷 **Ninja Strike: Stealth, Strategy, and Surprise in Every Move**
 
-⛩️ Prepare for the ultimate test of strategy and cunning in Ninja Strike, a thrilling game where stealth and tactics reign supreme. Set on a 10x10 grid, this game challenges you to hide your team of 10 ninjas while you search for and strike your opponent's hidden forces.
+⛩️ **Prepare for the ultimate test of strategy and cunning in Ninja Strike** — a thrilling game where stealth and tactics reign supreme. Set on a 10x10 grid, this game challenges you to hide your team of 10 ninjas while you search for and strike your opponent's hidden forces.
 
 <img src="https://github.com/user-attachments/assets/6226078f-f04a-4046-a0da-e1ef3ebd95f5" alt="image" width="300"/>
 
-### Gameplay
+## 🎮 **Gameplay**
 
-🎮 Each player secretly arranges 10 ninjas on a 10x10 grid, aiming to uncover and eliminate all of the opponent's ninjas before losing their own. Players take turns guessing their opponent's ninja locations, employing tactics like clustering ninjas for a final stand or spreading them out to confuse the enemy. The tension builds as each guess brings you closer to victory or defeat! 🥷🎯
+Each player secretly arranges 10 ninjas on a 10x10 grid, aiming to uncover and eliminate all of the opponent's ninjas before losing their own. 
+
+Players take turns guessing their opponent's ninja locations, employing tactics like clustering ninjas for a final stand or spreading them out to confuse the enemy.
+
+The tension builds with every move, as each guess brings you closer to victory or defeat! 🥷🎯
+
+---
+
+## 🛠 **Cool Integrations and Tools Used**
+
+To make Ninja Strike a reality, we've used some incredible integrations and tools that power everything behind the scenes:
+
+- **Stackr Labs Microrollup**: In [Ninja Strike](https://github.com/ChanX21/Envio-Ninja-Indexer), we've implemented an innovative tracking system that uses Proof of Gameplay to ensure every move is verified and secure. This technology, powered by [Stackr Labs](https://github.com/ChanX21/Ninja-Unity-ETH-Online-2024/tree/main/packages/backend/ninja)' Micro-Rollups, enables us to keep track of in-game actions off-chain while still providing verifiable proof of each player's moves
+  
+- **Envio Indexer**: The Envio Ninja Indexer helps index game state changes and synchronize game data such as leaderboards, player stats etc across multiple players in real-time, keeping your game experience smooth and responsive.
+
+---
+
 
 
 # 🏗 Scaffold-ETH 2
