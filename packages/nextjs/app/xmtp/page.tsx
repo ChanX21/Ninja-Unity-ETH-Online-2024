@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState, KeyboardEvent } from "react";
 import { Client } from "@xmtp/xmtp-js";
-import { useAccount, useSignMessage, useConnectorClient } from "wagmi";
-import { BrowserProvider, JsonRpcSigner } from "ethers";
-import type { Account, Chain, Client as ClientViem, Transport } from "viem";
-import { type Config } from "wagmi";
+import { useAccount, useConnectorClient, useSignMessage } from "wagmi";
+import { BrowserProvider, JsonRpcSigner, Wallet } from "ethers";
+import axios from 'axios';
 
-// Include useEthersSigner function directly in the file
-function clientToSigner(client: ClientViem<Transport, Chain, Account>) {
+const CHATBOT_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+const BOT_PRIVATE_KEY = process.env.NEXT_PUBLIC_BOT_PK;
+
+if (!BOT_PRIVATE_KEY) {
+  throw new Error("NEXT_PUBLIC_BOT_PK is not defined in environment variables");
+}
+
+function clientToSigner(client: Client<Transport, Chain, Account>) {
+  console.log("clientToSigner called with client:", client);
   const { account, chain, transport } = client;
   const network = {
     chainId: chain.id,
@@ -22,63 +28,51 @@ function clientToSigner(client: ClientViem<Transport, Chain, Account>) {
 
 function useEthersSigner({ chainId }: { chainId?: number } = {}) {
   const { data: client } = useConnectorClient<Config>({ chainId });
+  console.log("useEthersSigner called with client:", client);
   return useMemo(() => (client ? clientToSigner(client) : undefined), [client]);
 }
 
-const XMTPMessagesPage = () => {
-  const { address, connector } = useAccount();
-  const { data: signMessageData, error, isLoading, signMessage, variables } = useSignMessage();
-  const { chain } = useAccount();
-  const [recoveredAddress, setRecoveredAddress] = useState<string | null>(null);
-  const [response, setResponse] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState<string>("");
-  const [newMessage, setNewMessage] = useState<string>("");
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [senderAddresses, setSenderAddresses] = useState<string[]>([]); // New state for sender addresses
-  const [selectedSender, setSelectedSender] = useState<string>(""); // New state for selected sender
-  const [filter, setFilter] = useState<string>(""); // State for manual filter
+const botSigner = new Wallet(BOT_PRIVATE_KEY);
 
+const XMTPChatGPTBot = () => {
+  const { address, chain } = useAccount();
   const signer = useEthersSigner({ chainId: chain?.id });
-
-  useEffect(() => {
-    const recoverAddress = async () => {
-      if (variables?.message && signMessageData) {
-        try {
-          setRecoveredAddress(address || null);
-        } catch (err) {
-          console.error("Failed to recover address:", err);
-        }
-      }
-    };
-
-    recoverAddress();
-  }, [signMessageData, variables?.message, address]);
+  const [messages, setMessages] = useState<{ sender: string; content: string; sent: Date }[]>([]);
+  const [newMessage, setNewMessage] = useState<string>("");
+  const [xmtpClient, setXmtpClient] = useState<Client | null>(null);
+  const [conversation, setConversation] = useState<any>(null);
 
   useEffect(() => {
     const initXMTP = async () => {
       if (signer) {
         try {
-          const xmtp = await Client.create(signer, { env: "production" });
-          const convos = await xmtp.conversations.list();
-          setConversations(convos);
+          console.log("Initializing XMTP client with signer:", signer);
+          const client = await Client.create(signer, { env: "production" });
+          console.log("XMTP client initialized:", client);
+          setXmtpClient(client);
+          const convo = await client.conversations.newConversation(CHATBOT_ADDRESS);
+          console.log("New conversation created:", convo);
+          setConversation(convo);
 
-          const allMessages = await Promise.all(
-            convos.map(async (conversation) => {
-              const msgs = await conversation.messages();
-              return msgs.map((msg) => ({
-                sender: msg.senderAddress,
-                content: msg.content,
-                sent: msg.sent,
-              }));
-            })
-          );
-          const flatMessages = allMessages.flat();
-          setMessages(flatMessages);
+          // Send initial greeting
+          const initialPrompt = "You are a chatbot for the game Ninja Strike. Introduce yourself and briefly explain the game's concept.";
+          const initialGreeting = await processChatbotMessage(initialPrompt);
+          console.log("Initial greeting processed:", initialGreeting);
+          await convo.send(initialGreeting);
+          setMessages([{ sender: CHATBOT_ADDRESS, content: initialGreeting, sent: new Date() }]);
 
-          // Extract unique sender addresses
-          const uniqueSenders = Array.from(new Set(flatMessages.map((msg) => msg.sender)));
-          setSenderAddresses(uniqueSenders);
+          // Listen for new messages
+          const stream = await convo.streamMessages();
+          console.log("Message stream started");
+          for await (const msg of stream) {
+            console.log("New message received:", msg);
+            if (msg.senderAddress !== address) {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                { sender: msg.senderAddress, content: msg.content, sent: msg.sent },
+              ]);
+            }
+          }
         } catch (error) {
           console.error("Failed to initialize XMTP client:", error);
         }
@@ -86,170 +80,90 @@ const XMTPMessagesPage = () => {
     };
 
     initXMTP();
-  }, [signer]);
+  }, [signer, address]);
 
-  const sendMessageWithXMTP = async () => {
-    if (!address || !connector) {
-      console.error("No connected address or connector found");
-      return;
-    }
-
-    if (!signer) {
-      console.error("No signer found");
-      return;
-    }
-
-    if (!recipientAddress) {
-      console.error("No recipient address provided");
-      return;
-    }
-
+  const processChatbotMessage = async (message: string) => {
     try {
-      const xmtp = await Client.create(signer);
-      const conversation = await xmtp.conversations.newConversation(recipientAddress);
+      console.log("Processing chatbot message:", message);
+      const response = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: "gpt-3.5-turbo",
+          messages: [
+            { role: "system", content: "You are a chatbot for the game Ninja Strike. The game is played on a 10x10 grid where each player hides 10 ninjas and tries to find the opponent's ninjas. Respond as if you're guiding players through the game." },
+            { role: "user", content: message }
+          ],
+          max_tokens: 150,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CHATGPT}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log("Chatbot response received:", response.data.choices[0].message.content);
+      return response.data.choices[0].message.content;
+    } catch (error) {
+      console.error("Error communicating with ChatGPT:", error);
+      return "I apologize, but I'm having trouble processing your request at the moment. Please try again later.";
+    }
+  };
+
+  const sendMessage = async () => {
+    if (newMessage.trim() && conversation) {
+      console.log("Sending new message:", newMessage);
       await conversation.send(newMessage);
-      setResponse(`Message sent to ${recipientAddress}`);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: address || "You", content: newMessage, sent: new Date() },
+      ]);
       setNewMessage("");
 
-      // Refresh conversations and messages
-      const convos = await xmtp.conversations.list();
-      setConversations(convos);
-      const allMessages = await Promise.all(
-        convos.map(async (conv) => {
-          const msgs = await conv.messages();
-          return msgs.map((msg) => ({
-            sender: msg.senderAddress,
-            content: msg.content,
-            sent: msg.sent,
-          }));
-        })
-      );
-      const flatMessages = allMessages.flat();
-      setMessages(flatMessages);
-
-      // Update unique sender addresses
-      const uniqueSenders = Array.from(new Set(flatMessages.map((msg) => msg.sender)));
-      setSenderAddresses(uniqueSenders);
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      setResponse("Failed to send message. Please try again.");
+      // Process the message with the chatbot
+      const botResponse = await processChatbotMessage(newMessage);
+      console.log("Sending bot response:", botResponse);
+      await conversation.send(botResponse);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: CHATBOT_ADDRESS, content: botResponse, sent: new Date() },
+      ]);
     }
   };
 
-  const handleSignMessage = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const message = formData.get("message") as string;
-    signMessage({ message });
+  const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
   };
-
-  // Filter messages based on the selected sender or manual filter
-  const filteredMessages = useMemo(() => {
-    if (selectedSender) {
-      return messages.filter((msg) => msg.sender.toLowerCase() === selectedSender.toLowerCase());
-    }
-    if (filter) {
-      return messages.filter((msg) => msg.sender.toLowerCase().includes(filter.toLowerCase()));
-    }
-    return messages;
-  }, [messages, selectedSender, filter]);
 
   return (
-    <div className="flex items-center flex-col flex-grow pt-10">
-      <div className="px-5">
-        <h1 className="text-center">
-          <span className="block text-2xl mb-2">XMTP Messages</span>
-          <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
-        </h1>
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <h2 className="text-xl font-bold">Messages</h2>
-
-              {/* List of sender addresses */}
-              <div className="mt-4 max-h-60 overflow-y-auto w-full">
-                {senderAddresses.map((sender, index) => (
-                  <div
-                    key={index}
-                    className={`cursor-pointer p-2 my-2 rounded text-left truncate ${selectedSender === sender ? "bg-blue-200" : "bg-base-200"
-                      }`}
-                    onClick={() => setSelectedSender(sender)}
-                    title={sender}
-                  >
-                    {sender}
-                  </div>
-                ))}
-              </div>
-
-              {/* Manual filter input */}
-              <input
-                type="text"
-                className="input input-bordered w-full mt-4"
-                placeholder="Filter by address"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              />
-
-              <div className="mt-4 max-h-60 overflow-y-auto w-full">
-                {filteredMessages.map((msg, index) => (
-                  <div key={index} className="bg-base-200 p-2 my-2 rounded text-left">
-                    <p>
-                      <strong>{msg.sender === address ? "You" : "From"}:</strong> {msg.content}
-                    </p>
-                    <p className="text-xs text-gray-500">{new Date(msg.sent).toLocaleString()}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-col w-full">
-                <input
-                  type="text"
-                  className="input input-bordered w-full mb-2"
-                  placeholder="Recipient address"
-                  value={recipientAddress}
-                  onChange={(e) => setRecipientAddress(e.target.value)}
-                />
-                <input
-                  type="text"
-                  className="input input-bordered w-full mb-2"
-                  placeholder="Type your message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                />
-                <button className="btn btn-primary" onClick={sendMessageWithXMTP}>
-                  Send
-                </button>
-              </div>
-              <div className="mt-4 text-sm text-gray-500">{response}</div>
-              <form onSubmit={handleSignMessage} className="mt-4">
-                <label htmlFor="message">Enter a message to sign</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  placeholder="The quick brown fox…"
-                  required
-                  className="textarea textarea-bordered w-full mt-2"
-                />
-                <button type="submit" disabled={isLoading} className="btn btn-secondary mt-2">
-                  {isLoading ? "Check Wallet" : "Sign Message"}
-                </button>
-              </form>
-              {signMessageData && (
-                <div className="mt-4 text-sm">
-                  <div>Recovered Address: {recoveredAddress}</div>
-                  <div>Signature: {signMessageData}</div>
-                </div>
-              )}
-              {error && (
-                <div style={{ color: "red" }} className="mt-2">
-                  {error.message}
-                </div>
-              )}
+    <div className="flex flex-col h-screen bg-gray-100">
+      <div className="flex-grow overflow-auto p-4">
+        {messages.map((msg, index) => (
+          <div key={index} className={`mb-4 ${msg.sender === CHATBOT_ADDRESS ? 'text-left' : 'text-right'}`}>
+            <div className={`inline-block p-2 rounded-lg ${msg.sender === CHATBOT_ADDRESS ? 'bg-blue-200' : 'bg-green-200'}`}>
+              <p>{msg.content}</p>
+              <p className="text-xs text-gray-500">{msg.sent.toLocaleString()}</p>
             </div>
           </div>
+        ))}
+      </div>
+      <div className="p-4 bg-white">
+        <div className="flex">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="flex-grow mr-2 p-2 border rounded"
+            placeholder="Type your message..."
+          />
+          <button onClick={sendMessage} className="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
         </div>
       </div>
     </div>
   );
 };
 
-export default XMTPMessagesPage;
+export default XMTPChatGPTBot;
