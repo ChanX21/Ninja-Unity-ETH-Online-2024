@@ -11,6 +11,8 @@ Each player secretly arranges 10 ninjas on a 10x10 grid, aiming to uncover and e
 Players take turns guessing their opponent's ninja locations, employing tactics like clustering ninjas for a final stand or spreading them out to confuse the enemy.
 
 The tension builds with every move, as each guess brings you closer to victory or defeat! 🥷🎯
+<img src="https://github.com/user-attachments/assets/e25414d7-1fad-463d-b14b-1bfe68068470" alt="image" width="4000"/>
+
 
 ---
 
@@ -22,6 +24,7 @@ To make Ninja Strike a reality, we've used some incredible integrations and tool
   
 - **Envio Indexer**: The Envio Ninja Indexer helps index game state changes and synchronize game data such as leaderboards, player stats etc across multiple players in real-time, keeping your game experience smooth and responsive.
 
+- **Web3Auth Gaming SDK**:: In Ninja Strike, we've integrated Web3Auth's Gaming SDK to streamline user authentication. This integration allows players to securely and effortlessly connect to the game using decentralized login methods, improving user accessibility and enhancing security.
 ---
 
 
