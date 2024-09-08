@@ -1,11 +1,10 @@
-"use client";
-
-import UnityGame from '../../components/UnityGame';
+/* eslint-disable prettier/prettier */
+import UnityGameIframe from '../../components/UnityGameIframe';
 
 const GamePage: React.FC = () => {
     return (
         <div>
-            <UnityGame />
+            <UnityGameIframe />
         </div>
     );
 };

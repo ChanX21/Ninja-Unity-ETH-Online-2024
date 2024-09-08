@@ -8,6 +8,7 @@
     "dev": "next dev",
     "format": "prettier --write . '!(node_modules|.next|contracts)/**/*'",
     "lint": "next lint",
+    "prebuild": "node packages/nextjs/scripts/decompressBrotli.js",
     "serve": "next start",
     "start": "next dev",
     "vercel": "vercel",
