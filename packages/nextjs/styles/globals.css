@@ -30,3 +30,44 @@ p {
 .btn.btn-ghost {
   @apply shadow-none;
 }
+
+/* leaderboard */
+
+@keyframes ninja-vanish {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px) brightness(1);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.05) rotate(-2deg);
+    filter: blur(2px) brightness(1.2);
+  }
+  40% {
+    opacity: 0.8;
+    transform: scale(0.95) rotate(2deg);
+    filter: blur(0px) brightness(1.5);
+  }
+  60% {
+    opacity: 0.6;
+    transform: scale(1.02) rotate(-1deg) translateY(-10px);
+    filter: blur(3px) brightness(2);
+  }
+  80% {
+    opacity: 0.4;
+    transform: scale(0.98) rotate(1deg) translateY(5px);
+    filter: blur(5px) brightness(3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) rotate(720deg) translateY(-50px);
+    filter: blur(10px) brightness(5);
+  }
+}
+
+.animate-ninja-vanish {
+  animation: ninja-vanish 1.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+/* nft arena */

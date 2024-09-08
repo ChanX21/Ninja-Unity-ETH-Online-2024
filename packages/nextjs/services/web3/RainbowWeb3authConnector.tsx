@@ -1,5 +1,5 @@
 import { Wallet, WalletDetailsParams } from "@rainbow-me/rainbowkit";
-import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
+import { CHAIN_NAMESPACES, UX_MODE, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Web3Auth } from "@web3auth/modal";
 import { Web3AuthConnector } from "@web3auth/web3auth-wagmi-connector";
@@ -28,6 +28,18 @@ const web3AuthInstance = new Web3Auth({
   clientId,
   web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
   privateKeyProvider,
+  uiConfig: {
+    mode: "dark",
+    useLogoLoader: true,
+    logoLight: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
+    logoDark: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
+    defaultLanguage: "en",
+    theme: {
+      primary: "#768729",
+    },
+    uxMode: UX_MODE.REDIRECT,
+    modalZIndex: "2147483647",
+  },
 });
 
 export const rainbowWeb3AuthConnector = (): Wallet => ({
