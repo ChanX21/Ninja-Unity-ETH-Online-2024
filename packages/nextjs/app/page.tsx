@@ -3,32 +3,36 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { NextPage } from "next";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
+import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { getTargetNetworks } from "~~/utils/scaffold-eth";
 
 const Home: NextPage = () => {
   const { address: connectedAddress, isConnected } = useAccount();
+  const chainId = useChainId();
   const [showPopup, setShowPopup] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const [hasNFT, setHasNFT] = useState(false); // Placeholder for NFT check
+
+  // Get the target networks information
+  const targetNetworks = getTargetNetworks();
+
+  // Get the deployed contract information
+  const { data: deployedContractData } = useDeployedContractInfo("YourContractName");
+
+  console.log(chainId, targetNetworks, deployedContractData);
+
+  // Use scaffoldContractRead to check for NFT ownership
+  const { data: hasNFT } = useScaffoldReadContract({
+    contractName: "YourContractName",
+    functionName: "checkNFTOwnership", // Replace with your actual function name
+    args: [connectedAddress],
+  });
 
   useEffect(() => {
-    if (isConnected) {
-      // Placeholder for NFT check logic
-      // Replace this with your actual NFT checking logic
-      const checkNFT = async () => {
-        // Simulating an API call or blockchain query
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setHasNFT(false); // Set to true if the user has the NFT
-      };
-      checkNFT();
-    }
-  }, [isConnected]);
-
-  useEffect(() => {
-    if (isConnected && !hasNFT) {
-      setShowPopup(true);
+    if (isConnected && hasNFT !== undefined) {
+      setShowPopup(!hasNFT);
     }
   }, [isConnected, hasNFT]);
 

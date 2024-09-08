@@ -5,16 +5,44 @@ import Image from "next/image";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
 
-interface LeaderboardEntry {
+interface RawLeaderboardEntry {
   winner: string;
   amount: string;
 }
 
-const Leaderboard = () => {
+interface ProcessedLeaderboardEntry {
+  winner: string;
+  amount: string;
+}
+
+const Leaderboard: React.FC = () => {
   const { address: connectedAddress } = useAccount();
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [leaderboardData, setLeaderboardData] = useState<ProcessedLeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const processLeaderboard = (leaderboard: RawLeaderboardEntry[]): ProcessedLeaderboardEntry[] => {
+    const summedLeaderboard: { [key: string]: bigint } = {};
+
+    leaderboard.forEach(entry => {
+      const { winner, amount } = entry;
+      const amountBigInt = BigInt(amount);
+
+      if (summedLeaderboard[winner]) {
+        summedLeaderboard[winner] += amountBigInt;
+      } else {
+        summedLeaderboard[winner] = amountBigInt;
+      }
+    });
+
+    const processedLeaderboard = Object.entries(summedLeaderboard).map(([winner, amount]) => ({
+      winner,
+      amount: amount.toString(),
+    }));
+
+    // Convert BigInt comparison to number comparison
+    return processedLeaderboard.sort((a, b) => Number(BigInt(b.amount) - BigInt(a.amount)));
+  };
 
   useEffect(() => {
     const fetchLeaderboardData = async () => {
@@ -27,7 +55,7 @@ const Leaderboard = () => {
           body: JSON.stringify({
             query: `
               query {
-                leaderboard: Escrow_Released(limit: 5) {
+                leaderboard: Escrow_Released(limit: 20) {
                   winner
                   amount
                 }
@@ -40,7 +68,8 @@ const Leaderboard = () => {
         if (result.errors) {
           throw new Error(result.errors[0].message);
         }
-        setLeaderboardData(result.data.leaderboard);
+        const processedData = processLeaderboard(result.data.leaderboard);
+        setLeaderboardData(processedData);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching leaderboard data:", err);
@@ -53,8 +82,7 @@ const Leaderboard = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-b from-purple-900 via-indigo-900 to-black">
-      {/* Background Image */}
+    <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-purple-900 via-indigo-900 to-black">
       <Image
         src="/Leaderboardbg.png"
         alt="Ninja Strike Background"
@@ -63,67 +91,72 @@ const Leaderboard = () => {
         className="opacity-30"
       />
 
-      {/* Content Container */}
-      <div className="relative z-10 flex flex-col items-center pt-10 px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Image src="/nslogo.png" alt="Ninja Strike Logo" width={600} height={600} className="mb-8" />
+      <div className="relative z-10 h-full overflow-y-auto">
+        <div className="flex flex-col items-center pt-4 px-2 sm:px-4 pb-8">
+          <Image src="/nslogo.png" alt="Ninja Strike Logo" width={200} height={200} className="mb-4" />
 
-        {/* Connected Address */}
-        <div className="bg-black bg-opacity-50 rounded-lg p-4 mb-8 border border-purple-500 shadow-lg shadow-purple-500/50">
-          <p className="text-white font-medium mb-2">Connected Address:</p>
-          <Address address={connectedAddress} />
-        </div>
+          <div className="bg-black bg-opacity-50 rounded-lg p-2 mb-4 border border-purple-500 shadow-lg shadow-purple-500/50 w-full max-w-md">
+            <p className="text-white font-medium mb-1 text-center text-sm">Connected Address:</p>
+            <Address address={connectedAddress} />
+          </div>
 
-        {/* Leaderboard */}
-        <div className="w-full max-w-4xl bg-black bg-opacity-70 rounded-lg overflow-hidden shadow-2xl border border-indigo-500">
-          <h2 className="text-3xl font-bold text-center text-white py-6 bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md">
-            Ninja Strike Leaderboard
-          </h2>
+          <div className="w-full max-w-xl bg-black bg-opacity-70 rounded-lg overflow-hidden shadow-2xl border border-indigo-500">
+            <h2 className="text-xl sm:text-2xl font-bold text-center text-white py-3 bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md">
+              Ninja Strike Leaderboard
+            </h2>
 
-          {loading ? (
-            <p className="text-white text-center py-4">Loading leaderboard data...</p>
-          ) : error ? (
-            <p className="text-red-500 text-center py-4">{error}</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-indigo-800 text-white">
-                    <th className="p-4 font-semibold">Rank</th>
-                    <th className="p-4 font-semibold">Player</th>
-                    <th className="p-4 font-semibold">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaderboardData.map((entry, index) => (
-                    <tr
-                      key={index}
-                      className={`${
-                        index % 2 === 0 ? "bg-indigo-900 bg-opacity-50" : "bg-purple-900 bg-opacity-50"
-                      } hover:bg-opacity-75 transition-colors`}
-                    >
-                      <td className="p-4">
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full text-black font-bold">
-                          {index + 1}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="relative w-10 h-10 overflow-hidden rounded-full border-2 border-purple-400">
-                            <Image src="/avatar.jpg" alt={`${entry.winner}'s avatar`} layout="fill" objectFit="cover" />
-                          </div>
-                          <span className="text-white font-medium">{entry.winner}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-green-400 font-bold">{entry.amount}</span>
-                      </td>
+            {loading ? (
+              <p className="text-white text-center py-4">Loading leaderboard data...</p>
+            ) : error ? (
+              <p className="text-red-500 text-center py-4">{error}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-indigo-800 text-white">
+                      <th className="p-2 font-semibold text-xs sm:text-sm">Rank</th>
+                      <th className="p-2 font-semibold text-xs sm:text-sm">Player</th>
+                      <th className="p-2 font-semibold text-xs sm:text-sm">Amount</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {leaderboardData.map((entry, index) => (
+                      <tr
+                        key={index}
+                        className={`${
+                          index % 2 === 0 ? "bg-indigo-900 bg-opacity-50" : "bg-purple-900 bg-opacity-50"
+                        } hover:bg-opacity-75 transition-colors`}
+                      >
+                        <td className="p-2">
+                          <span className="inline-flex items-center justify-center w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full text-black font-bold text-xs">
+                            {index + 1}
+                          </span>
+                        </td>
+                        <td className="p-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="relative w-6 h-6 overflow-hidden rounded-full border border-purple-400">
+                              <Image
+                                src="/avatar.jpg"
+                                alt={`${entry.winner}'s avatar`}
+                                layout="fill"
+                                objectFit="cover"
+                              />
+                            </div>
+                            <span className="text-white font-medium text-xs sm:text-sm truncate max-w-[150px] sm:max-w-[200px]">
+                              {entry.winner}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-2">
+                          <span className="text-green-400 font-bold text-xs sm:text-sm">{entry.amount}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
