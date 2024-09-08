@@ -18,6 +18,41 @@ import { EndpointId } from '@layerzerolabs/lz-definitions'
 // If you prefer using a mnemonic, set a MNEMONIC environment variable
 // to a valid mnemonic
 const MNEMONIC = process.env.MNEMONIC
+import { task } from "hardhat/config";
+
+import fs from "fs";
+import path from "path";
+task("setLZ", "Set LayerZero (LZ) contract")
+  .setAction(async (taskArgs: { }, {ethers, network, run}) => {
+
+    const [deployer] = await ethers.getSigners();
+    let eid;
+    network.name=='base-testnet'?eid=40245:eid=40285;
+    const { receipt } = JSON.parse(fs.readFileSync(path.resolve(`./deployments/${network.name}/Escrow.json`),'utf8'));
+    const { receipt: receipt2 } = JSON.parse(fs.readFileSync(path.resolve(`./deployments/${network.name}/LZEscrow.json`),'utf8'));
+    // Attach to the Escrow contract using its ABI and address
+   const Escrow = await ethers.getContractFactory("Escrow");
+   const LZEscrow = await ethers.getContractFactory("LZEscrow");
+
+const escrowContract: Contract = Escrow.attach(receipt.contractAddress);
+const lzEscrowContract: Contract = LZEscrow.attach(receipt.contractAddress);
+    const tx = await escrowContract.connect(deployer).setLZ(receipt2.contractAddress, eid);
+    await tx.wait();
+    const tx2 = await lzEscrowContract.connect(deployer).setEscrow(receipt.contractAddress);
+    await tx2.wait();
+    const { receipt: receipt3 } = JSON.parse(fs.readFileSync(path.resolve(`./deployments/${network.name}/NFT.json`),'utf8'));
+    const { receipt: receipt4 } = JSON.parse(fs.readFileSync(path.resolve(`./deployments/${network.name}/LZ.json`),'utf8'));
+    console.log(network,receipt)
+    const NFT = await ethers.getContractFactory("NFT");
+   const LZ = await ethers.getContractFactory("LZ");
+
+const NFTContract: Contract = NFT.attach(receipt3.contractAddress);
+const lzContract: Contract = LZ.attach(receipt4.contractAddress);
+    const tx3 = await NFTContract.connect(deployer).setLZ(receipt4.contractAddress, eid);
+    await tx3.wait();
+    const tx4 = await lzContract.connect(deployer).setNFT(receipt3.contractAddress);
+    await tx4.wait();
+  });
 
 // If you prefer to be authenticated using a private key, set a PRIVATE_KEY environment variable
 const PRIVATE_KEY = process.env.PRIVATE_KEY
@@ -52,15 +87,17 @@ const config: HardhatUserConfig = {
         ],
     },
     networks: {
-        'sepolia-testnet': {
-            eid: EndpointId.SEPOLIA_V2_TESTNET,
-            url: process.env.RPC_URL_SEPOLIA || 'https://rpc.sepolia.org/',
+      
+       'hedera-testnet': {
+            eid: EndpointId.HEDERA_V2_TESTNET,
+            url: process.env.RPC_URL_FUJI || 'https://testnet.hashio.io/api',
             accounts,
         },
-       'base-testnet': {
+        'base-testnet': {
             eid: EndpointId.BASESEP_V2_TESTNET,
             url: process.env.RPC_URL_FUJI || 'https://sepolia.base.org/',
             accounts,
+
         },
     },
     namedAccounts: {
