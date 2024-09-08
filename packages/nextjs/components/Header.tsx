@@ -29,11 +29,6 @@ export const menuLinks: HeaderMenuLink[] = [
     href: "/onchainkit-examples",
     icon: <RectangleGroupIcon className="h-4 w-4" />,
   },
-  {
-    label: "XMTP",
-    href: "/xmtp",
-    icon: <RectangleGroupIcon className="h-4 w-4" />,
-  },
 ];
 
 export const HeaderMenuLinks = () => {
