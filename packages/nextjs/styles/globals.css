@@ -31,7 +31,7 @@ p {
   @apply shadow-none;
 }
 
-/* kjmfsfjm */
+/* leaderboard */
 
 @keyframes ninja-vanish {
   0% {
@@ -69,3 +69,5 @@ p {
 .animate-ninja-vanish {
   animation: ninja-vanish 1.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
+
+/* nft arena */

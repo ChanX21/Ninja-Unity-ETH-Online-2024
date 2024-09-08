@@ -1,0 +1,64 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100vh;
+  background: linear-gradient(135deg, #000080, #4b0082);
+  color: white;
+  font-family: "Arial", sans-serif;
+  padding-top: 50px;
+}
+
+.title {
+  font-size: 36px;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  font-size: 48px;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 80%;
+  max-width: 600px;
+}
+
+.statItem {
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.label {
+  font-size: 24px;
+  margin-bottom: 5px;
+  font-weight: normal;
+}
+
+.value {
+  font-size: 72px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.wallet {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
+.loading,
+.error {
+  font-size: 18px;
+  margin-top: 20px;
+}
