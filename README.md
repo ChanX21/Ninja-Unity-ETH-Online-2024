@@ -23,6 +23,7 @@ To make Ninja Strike a reality, we've used some incredible integrations and tool
 - **Stackr Labs Microrollup**: In [Ninja Strike](https://github.com/ChanX21/Envio-Ninja-Indexer), we've implemented an innovative tracking system that uses Proof of Gameplay to ensure every move is verified and secure. This technology, powered by [Stackr Labs](https://github.com/ChanX21/Ninja-Unity-ETH-Online-2024/tree/main/packages/backend/ninja)' Micro-Rollups, enables us to keep track of in-game actions off-chain while still providing verifiable proof of each player's moves
   
 - **Envio Indexer**: The Envio Ninja Indexer helps index game state changes and synchronize game data such as leaderboards, player stats etc across multiple players in real-time, keeping your game experience smooth and responsive.
+https://github.com/ChanX21/Envio-Ninja-Indexer 
 
 - **Web3Auth Gaming SDK**:: In Ninja Strike, we've integrated Web3Auth's Gaming SDK to streamline user authentication. This integration allows players to securely and effortlessly connect to the game using decentralized login methods, improving user accessibility and enhancing security.
 ---
