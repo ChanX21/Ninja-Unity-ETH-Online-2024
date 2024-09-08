@@ -126,34 +126,34 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-100">
-            <div className="flex justify-between items-center p-2 bg-blue-500 text-white">
+        <div className="flex flex-col h-full bg-gray-900 text-white">
+            <div className="flex justify-between items-center p-2 bg-gray-800 text-white">
                 <h2 className="text-lg font-bold">Ninja Strike Chat</h2>
-                <button onClick={onClose} className="text-white hover:text-gray-200">
+                <button onClick={onClose} className="text-white hover:text-gray-400">
                     ×
                 </button>
             </div>
             <div className="flex-grow overflow-auto p-4">
                 {messages.map((msg, index) => (
                     <div key={index} className={`mb-4 ${msg.sender === CHATBOT_ADDRESS ? 'text-left' : 'text-right'}`}>
-                        <div className={`inline-block p-2 rounded-lg ${msg.sender === CHATBOT_ADDRESS ? 'bg-blue-200' : 'bg-green-200'}`}>
+                        <div className={`inline-block p-2 rounded-lg ${msg.sender === CHATBOT_ADDRESS ? 'bg-blue-600' : 'bg-green-600'}`}>
                             <p>{msg.content}</p>
-                            <p className="text-xs text-gray-500">{msg.sent.toLocaleString()}</p>
+                            <p className="text-xs text-gray-400">{msg.sent.toLocaleString()}</p>
                         </div>
                     </div>
                 ))}
             </div>
-            <div className="p-4 bg-white">
+            <div className="p-4 bg-gray-800">
                 <div className="flex">
                     <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        className="flex-grow mr-2 p-2 border rounded"
+                        className="flex-grow mr-2 p-2 border rounded bg-gray-700 text-white placeholder-gray-400"
                         placeholder="Type your message..."
                     />
-                    <button onClick={sendMessage} className="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
+                    <button onClick={sendMessage} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-400">Send</button>
                 </div>
             </div>
         </div>
