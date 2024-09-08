@@ -4,6 +4,15 @@
 
 <img src="https://github.com/user-attachments/assets/6226078f-f04a-4046-a0da-e1ef3ebd95f5" alt="image" width="300"/>
 
+# Ninja Unity Game Code 
+
+## Ninja Strike
+https://drive.google.com/file/d/1Zc-0UwTwNSIMDtGvGALqAnANnVuo-8Z0/view?usp=sharing
+
+![image](https://github.com/user-attachments/assets/dd42fadf-1f59-46c9-91f4-aa3293003ab1)
+
+
+
 ## 🎮 **Gameplay**
 
 Each player secretly arranges 10 ninjas on a 10x10 grid, aiming to uncover and eliminate all of the opponent's ninjas before losing their own. 
