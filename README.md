@@ -88,6 +88,7 @@ This command starts a local Ethereum network using Hardhat. The network runs on 
 3. On a second terminal, deploy the test contract:
 
 ```
+node script/decompressBrotli.js  
 yarn deploy
 ```
 
@@ -107,6 +108,8 @@ Run smart contract test with `yarn hardhat:test`
 - Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
 - Edit your deployment scripts in `packages/hardhat/deploy`
 
+## Unity Code Google Drive Link
+https://drive.usercontent.google.com/download?id=1Zc-0UwTwNSIMDtGvGALqAnANnVuo-8Z0&export=download
 
 ## Documentation
 
