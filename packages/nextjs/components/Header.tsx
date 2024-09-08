@@ -4,7 +4,7 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bars3Icon, BugAntIcon, RectangleGroupIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, BugAntIcon, RectangleGroupIcon, RocketLaunchIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 
@@ -28,6 +28,11 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "OnchainKit examples",
     href: "/onchainkit-examples",
     icon: <RectangleGroupIcon className="h-4 w-4" />,
+  },
+  {
+    label: "Ninja Strike",
+    href: "/game",
+    icon: <RocketLaunchIcon className="h-4 w-4" />,
   },
 ];
 
