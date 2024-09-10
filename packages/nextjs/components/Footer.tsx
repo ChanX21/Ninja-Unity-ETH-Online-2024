@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { hardhat } from "viem/chains";
-import { CurrencyDollarIcon, MagnifyingGlassIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { useAccount } from "wagmi";
+import { ChatBubbleLeftRightIcon, CurrencyDollarIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { HeartIcon } from "@heroicons/react/24/outline";
-import { SwitchTheme } from "~~/components/SwitchTheme";
+// import { SwitchTheme } from "~~/components/SwitchTheme";
+import XMTPChatGPTBot from "~~/components/XMTPChatGPTBot";
 import { BuidlGuidlLogo } from "~~/components/assets/BuidlGuidlLogo";
 import { Faucet } from "~~/components/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import { useGlobalState } from "~~/services/store/store";
-import XMTPChatGPTBot from "~~/components/XMTPChatGPTBot";
-import { useAccount } from "wagmi";
 
 export const Footer = () => {
   const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrency.price);
@@ -58,12 +58,7 @@ export const Footer = () => {
         <ul className="menu menu-horizontal w-full">
           <div className="flex justify-center items-center gap-2 text-sm w-full">
             <div className="text-center">
-              <a
-                href="https://github.com/scaffold-eth/se-2"
-                target="_blank"
-                rel="noreferrer"
-                className="link"
-              >
+              <a href="https://github.com/scaffold-eth/se-2" target="_blank" rel="noreferrer" className="link">
                 Fork me
               </a>
             </div>
@@ -84,12 +79,7 @@ export const Footer = () => {
             </div>
             <span>·</span>
             <div className="text-center">
-              <a
-                href="https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA"
-                target="_blank"
-                rel="noreferrer"
-                className="link"
-              >
+              <a href="https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA" target="_blank" rel="noreferrer" className="link">
                 Support
               </a>
             </div>
@@ -98,16 +88,19 @@ export const Footer = () => {
       </div>
       <div className="fixed bottom-4 right-4 pointer-events-auto">
         <button
-          className={`btn ${isChatOpen ? 'btn-primary' : 'btn-secondary'} btn-sm font-normal gap-1`}
+          className={`btn ${isChatOpen ? "btn-primary" : "btn-secondary"} btn-sm font-normal gap-1`}
           onClick={toggleChat}
         >
           <ChatBubbleLeftRightIcon className="h-4 w-4" />
-          <span>{isChatOpen ? 'Close Chat' : 'Open Chat'}</span>
+          <span>{isChatOpen ? "Close Chat" : "Open Chat"}</span>
         </button>
       </div>
       {isChatInitialized && (
-        <div className={`fixed bottom-16 right-4 w-80 h-96 bg-white shadow-xl rounded-lg overflow-hidden transition-all duration-300 ease-in-out ${isChatOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-          <XMTPChatGPTBot onClose={() => setIsChatOpen(false)} isOpen={isChatOpen} />
+        <div
+          className={`fixed bottom-16 right-4 w-80 h-96 bg-white shadow-xl rounded-lg overflow-hidden transition-all duration-300 ease-in-out ${isChatOpen ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
+        >
+          <XMTPChatGPTBot onClose={() => setIsChatOpen(false)} />
         </div>
       )}
     </div>

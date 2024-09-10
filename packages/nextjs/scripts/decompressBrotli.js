@@ -5,7 +5,7 @@ const util = require('util');
 
 const brotliDecompress = util.promisify(zlib.brotliDecompress);
 
-const unityBuildPath = path.resolve(__dirname, '../public/UnityGame/Build');
+const unityBuildPath = path.resolve(__dirname, '../public/NinjaStrike/Build');
 
 console.log('Unity Build Path:', unityBuildPath);
 

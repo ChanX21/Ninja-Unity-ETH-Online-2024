@@ -5,7 +5,7 @@ import { Web3Auth } from "@web3auth/modal";
 import { Web3AuthConnector } from "@web3auth/web3auth-wagmi-connector";
 import { createConnector as createWagmiConnector } from "wagmi";
 
-const clientId = "BCWDe7_V6ITJzkvM_FTvM6P5t_xoEVpWzTuSnlCEDIEkeIeEWh9e4Hczzwpz4I1hciWCL2YC2CTRJ2vPEvjX1Cw"; // get from https://dashboard.web3auth.io
+const clientId = "BPhjKXM1GSxtlCJK-YHA9LFbimPYDD3y4ENXvdQbWAHRdPIGoiz1XaftrMD9LwT2zJ_A8HSHkukFUCDj6mYmx7g"; // get from https://dashboard.web3auth.io
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,

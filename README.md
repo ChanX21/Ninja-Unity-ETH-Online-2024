@@ -79,7 +79,7 @@ This command starts a local Ethereum network using Hardhat. The network runs on 
 3. On a second terminal, deploy the test contract:
 
 ```
-node script/decompressBrotli.js  
+node scripts/decompressBrotli.js  
 yarn deploy
 ```
 

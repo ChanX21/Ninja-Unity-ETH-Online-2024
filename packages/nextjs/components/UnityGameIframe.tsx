@@ -1,22 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const UnityGameIframe = () => {
-  const [iframeHeight, setIframeHeight] = useState('600px');
+  const [iframeSrc, setIframeSrc] = useState('/NinjaStrike/index.html');
 
-  useEffect(() => {
-    const updateIframeSize = () => {
-      const width = Math.min(960, window.innerWidth - 40); // 20px padding on each side
-      const height = (width / 16) * 9; // Assuming a 16:9 aspect ratio
-      setIframeHeight(`${height}px`);
-    };
-
-    window.addEventListener('resize', updateIframeSize);
-    updateIframeSize();
-
-    return () => window.removeEventListener('resize', updateIframeSize);
-  }, []);
+  const handleWeb3AuthConnect = () => {
+    // Open Web3Auth login page in a new window
+    window.open('https://auth.web3auth.io', '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div style={{
@@ -27,17 +19,19 @@ const UnityGameIframe = () => {
       padding: '20px'
     }}>
       <iframe
-        src="/UnityGame/index.html"
-        width="100%"
-        height={iframeHeight}
+        src={iframeSrc}
+        width="1280px"
+        height="666"
         style={{
-          maxWidth: '960px',
           border: 'none',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}
         title="Unity WebGL Game"
         allowFullScreen
       />
+      <button onClick={handleWeb3AuthConnect} style={{ position: 'absolute', top: '20px', right: '20px' }}>
+        Connect with Web3Auth
+      </button>
     </div>
   );
 };

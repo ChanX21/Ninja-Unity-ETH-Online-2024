@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, KeyboardEvent } from "react";
+import { KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { Client } from "@xmtp/xmtp-js";
-import { useAccount, useConnectorClient, useSignMessage } from "wagmi";
-import { BrowserProvider, JsonRpcSigner, Wallet } from "ethers";
-import axios from 'axios';
+import axios from "axios";
+import { BrowserProvider, JsonRpcSigner } from "ethers";
+import { useAccount, useConnectorClient } from "wagmi";
 
 const CHATBOT_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 const BOT_PRIVATE_KEY = process.env.NEXT_PUBLIC_BOT_PK;
@@ -30,7 +30,7 @@ function useEthersSigner({ chainId }: { chainId?: number } = {}) {
     return useMemo(() => (client ? clientToSigner(client) : undefined), [client]);
 }
 
-const botSigner = new Wallet(BOT_PRIVATE_KEY);
+// const botSigner = new Wallet(BOT_PRIVATE_KEY);
 
 const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
     const { address, chain } = useAccount();
@@ -50,7 +50,8 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
                     setConversation(convo);
 
                     // Send initial greeting
-                    const initialPrompt = "You are a chatbot for the game Ninja Strike. Introduce yourself and briefly explain the game's concept.";
+                    const initialPrompt =
+                        "You are a chatbot for the game Ninja Strike. Introduce yourself and briefly explain the game's concept.";
                     const initialGreeting = await processChatbotMessage(initialPrompt);
                     await convo.send(initialGreeting);
                     setMessages([{ sender: CHATBOT_ADDRESS, content: initialGreeting, sent: new Date() }]);
@@ -59,7 +60,7 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
                     const stream = await convo.streamMessages();
                     for await (const msg of stream) {
                         if (msg.senderAddress !== address) {
-                            setMessages((prevMessages) => [
+                            setMessages(prevMessages => [
                                 ...prevMessages,
                                 { sender: msg.senderAddress, content: msg.content, sent: msg.sent },
                             ]);
@@ -77,21 +78,25 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
     const processChatbotMessage = async (message: string) => {
         try {
             const response = await axios.post(
-                'https://api.openai.com/v1/chat/completions',
+                "https://api.openai.com/v1/chat/completions",
                 {
                     model: "gpt-3.5-turbo",
                     messages: [
-                        { role: "system", content: "You are a chatbot for the game Ninja Strike. The game is played on a 10x10 grid where each player hides 10 ninjas and tries to find the opponent's ninjas. Respond as if you're guiding players through the game." },
-                        { role: "user", content: message }
+                        {
+                            role: "system",
+                            content:
+                                "You are a chatbot for the game Ninja Strike. The game is played on a 10x10 grid where each player hides 10 ninjas and tries to find the opponent's ninjas. Respond as if you're guiding players through the game.",
+                        },
+                        { role: "user", content: message },
                     ],
                     max_tokens: 150,
                 },
                 {
                     headers: {
-                        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CHATGPT}`,
-                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_CHATGPT}`,
+                        "Content-Type": "application/json",
                     },
-                }
+                },
             );
             return response.data.choices[0].message.content;
         } catch (error) {
@@ -103,7 +108,7 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
     const sendMessage = async () => {
         if (newMessage.trim() && conversation) {
             await conversation.send(newMessage);
-            setMessages((prevMessages) => [
+            setMessages(prevMessages => [
                 ...prevMessages,
                 { sender: address || "You", content: newMessage, sent: new Date() },
             ]);
@@ -112,7 +117,7 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
             // Process the message with the chatbot
             const botResponse = await processChatbotMessage(newMessage);
             await conversation.send(botResponse);
-            setMessages((prevMessages) => [
+            setMessages(prevMessages => [
                 ...prevMessages,
                 { sender: CHATBOT_ADDRESS, content: botResponse, sent: new Date() },
             ]);
@@ -120,7 +125,7 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
     };
 
     const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter') {
+        if (event.key === "Enter") {
             sendMessage();
         }
     };
@@ -135,8 +140,11 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
             </div>
             <div className="flex-grow overflow-auto p-4">
                 {messages.map((msg, index) => (
-                    <div key={index} className={`mb-4 ${msg.sender === CHATBOT_ADDRESS ? 'text-left' : 'text-right'}`}>
-                        <div className={`inline-block p-2 rounded-lg ${msg.sender === CHATBOT_ADDRESS ? 'bg-blue-600' : 'bg-green-600'}`}>
+                    <div key={index} className={`mb-4 ${msg.sender === CHATBOT_ADDRESS ? "text-left" : "text-right"}`}>
+                        <div
+                            className={`inline-block p-2 rounded-lg ${msg.sender === CHATBOT_ADDRESS ? "bg-blue-600" : "bg-green-600"
+                                }`}
+                        >
                             <p>{msg.content}</p>
                             <p className="text-xs text-gray-400">{msg.sent.toLocaleString()}</p>
                         </div>
@@ -148,12 +156,14 @@ const XMTPChatGPTBot = ({ onClose }: { onClose: () => void }) => {
                     <input
                         type="text"
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={e => setNewMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
                         className="flex-grow mr-2 p-2 border rounded bg-gray-700 text-white placeholder-gray-400"
                         placeholder="Type your message..."
                     />
-                    <button onClick={sendMessage} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-400">Send</button>
+                    <button onClick={sendMessage} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-400">
+                        Send
+                    </button>
                 </div>
             </div>
         </div>
