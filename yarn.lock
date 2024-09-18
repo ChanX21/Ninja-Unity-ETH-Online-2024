@@ -3371,6 +3371,7 @@ __metadata:
     react-copy-to-clipboard: ~5.1.0
     react-dom: ~18.2.0
     react-hot-toast: ~2.4.0
+    react-unity-webgl: ^9.5.2
     tailwindcss: ~3.4.3
     type-fest: ~4.6.0
     typescript: 5.5.3
@@ -16145,6 +16146,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-unity-webgl@npm:^9.5.2":
+  version: 9.5.2
+  resolution: "react-unity-webgl@npm:9.5.2"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: e97408e241cfc7c35ea426b8f89755c549b7daab946e32f09bd7ff9ee6ed7edb2fd9148d77434bb3ebda60454d34e20801dd6d86c2826acd074474d9f91c7295
+  languageName: node
+  linkType: hard
+
 "react@npm:^17.0.2":
   version: 17.0.2
   resolution: "react@npm:17.0.2"
@@ -16771,6 +16781,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "se-2@workspace:."
   dependencies:
+    "@nomiclabs/hardhat-ethers": ^2.2.3
+    ethers: ^6.13.2
     husky: ~8.0.3
     lint-staged: ~13.2.2
   languageName: unknown

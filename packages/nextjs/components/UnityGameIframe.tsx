@@ -1,12 +1,17 @@
 "use client";
 
 import React, { useState } from 'react';
+import { Unity, useUnityContext } from "react-unity-webgl";
 
-const UnityGameIframe = () => {
-  const [iframeSrc, setIframeSrc] = useState('/NinjaStrike/index.html');
+const NinjaStrike = () => {
+  const { unityProvider, isLoaded, loadingProgression } = useUnityContext({
+    loaderUrl: "/NinjaStrike/Build/NinjaStrike.loader.js",
+    dataUrl: "/NinjaStrike/Build/NinjaStrike.data",
+    frameworkUrl: "/NinjaStrike/Build/NinjaStrike.framework.js",
+    codeUrl: "/NinjaStrike/Build/NinjaStrike.wasm",
+  });
 
   const handleWeb3AuthConnect = () => {
-    // Open Web3Auth login page in a new window
     window.open('https://auth.web3auth.io', '_blank', 'noopener,noreferrer');
   };
 
@@ -15,25 +20,40 @@ const UnityGameIframe = () => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      height: '100vh',
-      padding: '20px'
+      height: '80vh',
+      padding: '40px',
+      position: 'relative'
     }}>
-      <iframe
-        src={iframeSrc}
-        width="1280px"
-        height="666"
+      {!isLoaded && (
+        <p>Loading Application... {Math.round(loadingProgression * 100)}%</p>
+      )}
+      <Unity
+        unityProvider={unityProvider}
         style={{
+          width: '1280px',
+          height: '666px',
           border: 'none',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}
-        title="Unity WebGL Game"
-        allowFullScreen
       />
-      <button onClick={handleWeb3AuthConnect} style={{ position: 'absolute', top: '20px', right: '20px' }}>
+      <button
+        onClick={handleWeb3AuthConnect}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          padding: '10px 15px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer'
+        }}
+      >
         Connect with Web3Auth
       </button>
     </div>
   );
 };
 
-export default UnityGameIframe;
+export default NinjaStrike;

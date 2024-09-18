@@ -1,10 +1,10 @@
 /* eslint-disable prettier/prettier */
-import UnityGameIframe from '../../components/UnityGameIframe';
+import NinjaStrike from '../../components/NinjaStrike';
 
 const GamePage: React.FC = () => {
     return (
         <div>
-            <UnityGameIframe />
+            <NinjaStrike />
         </div>
     );
 };

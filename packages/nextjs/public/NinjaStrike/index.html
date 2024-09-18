@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>Unity WebGL Player | DefiGame</title>
+  <title>NinjaStrike</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
 </head>
@@ -22,11 +22,17 @@
     <div id="unity-footer">
       <div id="unity-webgl-logo"></div>
       <div id="unity-fullscreen-button"></div>
-      <div id="unity-build-title">DefiGame</div>
+      <div id="unity-build-title">Ninja Strike</div>
     </div>
   </div>
+
+  <!-- Add this button and response div -->
+  <button id="sendMessageButton">Send Message to Unity</button>
+  <div id="unityResponse"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bn.js@5.2.0/lib/bn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bn.js@5.2.2/lib/bn.min.js"></script> <!-- MAKE SURE IT'S 5.2.2!!-->
+
   <script>
     let Instance;
     var container = document.querySelector("#unity-container");
@@ -118,23 +124,21 @@
         };
         gameInstance = unityInstance; // Initialize gameInstance here
 
-        // Example function to ensure Unity is ready
-        function sendMessageToUnity() {
-          if (gameInstance) {
-            console.log("Sending message to Unity...");
-            gameInstance.SendMessage('EscrowManager', 'OnActiveEscrowsReceived', 'Test Message');
-          } else {
-            console.error("gameInstance is not initialized yet.");
-          }
-        }
+        // Add this event listener for the button
+        document.getElementById('sendMessageButton').addEventListener('click', function () {
+          gameInstance.SendMessage('MessageReceiver', 'ReceiveMessageFromJS', 'Hello from HTML!');
+        });
 
-        // Call the function after initialization
-        sendMessageToUnity();
       }).catch((message) => {
         alert(message);
       });
     };
     document.body.appendChild(script);
+
+    // Add this function to receive messages from Unity
+    window.receiveMessageFromUnity = function (message) {
+      document.getElementById('unityResponse').textContent = 'Unity says: ' + message;
+    };
   </script>
 </body>
 
